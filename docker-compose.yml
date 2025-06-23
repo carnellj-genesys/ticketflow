@@ -1,72 +1,59 @@
 version: '3.8'
 
 services:
-  # Development service
-  tickettaker-dev:
+  # Development environment
+  ticketflow-dev:
     build:
       context: .
-      dockerfile: Dockerfile
       target: development
     ports:
-      - "3001:3001"  # API server
-      - "5173:5173"  # Vite dev server
-    environment:
-      - NODE_ENV=development
-      - PORT=3001
-      - VITE_WEBHOOK_ENABLED=${VITE_WEBHOOK_ENABLED:-false}
-      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://api.genesys.com/webhook/tickets}
+      - "3001:3001"
+      - "5173:5173"
     volumes:
       - .:/app
       - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_WEBHOOK_ENABLED=true
+      - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events
     networks:
-      - tickettaker-network
+      - ticketflow-network
     profiles:
       - dev
 
-  # Production service
-  tickettaker-prod:
+  # Production environment
+  ticketflow-prod:
     build:
       context: .
-      dockerfile: Dockerfile
       target: production
     ports:
-      - "80:80"      # Nginx
-      - "3001:3001"  # API server (direct access)
+      - "80:80"
+      - "3001:3001"
     environment:
       - NODE_ENV=production
-      - PORT=3001
-      - VITE_WEBHOOK_ENABLED=${VITE_WEBHOOK_ENABLED:-false}
-      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://api.genesys.com/webhook/tickets}
-    volumes:
-      - ./server/db.json:/app/server/db.json
+      - VITE_WEBHOOK_ENABLED=false
     networks:
-      - tickettaker-network
+      - ticketflow-network
     profiles:
       - prod
-    restart: unless-stopped
 
-  # Production service with custom webhook configuration
-  tickettaker-prod-webhook:
+  # Production environment with webhook enabled
+  ticketflow-prod-webhook:
     build:
       context: .
-      dockerfile: Dockerfile
       target: production
     ports:
-      - "8080:80"    # Nginx on different port
-      - "3002:3001"  # API server on different port
+      - "8080:80"
+      - "3002:3001"
     environment:
       - NODE_ENV=production
-      - PORT=3001
       - VITE_WEBHOOK_ENABLED=true
-      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://api.genesys.com/webhook/tickets}
-    volumes:
-      - ./server/db.json:/app/server/db.json
+      - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events
     networks:
-      - tickettaker-network
+      - ticketflow-network
     profiles:
       - prod-webhook
-    restart: unless-stopped
 
 networks:
-  tickettaker-network:
+  ticketflow-network:
     driver: bridge 
