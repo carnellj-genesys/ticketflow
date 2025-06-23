@@ -1,0 +1,59 @@
+{
+  "ticket": [
+    {
+      "_id": "1",
+      "issue_title": "Login page not loading",
+      "issue_description": "The users are unable to access the login page. The page shows a blank screen with no error messages.",
+      "status": "Open",
+      "priority": "High",
+      "email": "user@example.com",
+      "phone_number": "+15551234567",
+      "created": "2024-01-15T10:30:00.000Z",
+      "changed": "2025-06-19T20:52:01.823Z"
+    },
+    {
+      "_id": "2",
+      "issue_title": "Database connection timeout",
+      "issue_description": "Application experiencing intermittent database connection timeouts during peak hours.",
+      "status": "In-progress",
+      "priority": "Critical",
+      "email": "admin@company.com",
+      "phone_number": "+15559876543",
+      "created": "2024-01-14T14:20:00.000Z",
+      "changed": "2024-01-15T09:15:00.000Z"
+    },
+    {
+      "_id": "1750610986170",
+      "issue_title": "I am  a dummy ",
+      "issue_description": "I dint know how to aCTIVATW MY TRIGGFER",
+      "email": "john.carnell@genesys.com",
+      "phone_number": "+15551234567",
+      "status": "Open",
+      "priority": "Critical",
+      "created": "2025-06-22T16:49:46.170Z",
+      "changed": "2025-06-22T16:49:46.170Z"
+    },
+    {
+      "_id": "1750635620890",
+      "issue_title": "My app keeps crashing and rebooting my computer",
+      "issue_description": "I am working with NewCo app and it keeps dying.  Its crashing my computer and I can't get any work done with this.",
+      "email": "john.carnell@genesys.com",
+      "phone_number": "+15551234567",
+      "status": "Open",
+      "priority": "Critical",
+      "created": "2025-06-22T23:40:20.890Z",
+      "changed": "2025-06-22T23:40:20.890Z"
+    },
+    {
+      "_id": "1750635834761",
+      "issue_title": "My refrigerator is making a funny noise",
+      "issue_description": "Every time I close my refrigerator door the motor kicks and it sounds like gates of hell are opening",
+      "email": "john.carnell@genesys.com",
+      "phone_number": "+15551234567",
+      "status": "Open",
+      "priority": "Critical",
+      "created": "2025-06-22T23:43:54.761Z",
+      "changed": "2025-06-22T23:43:54.761Z"
+    }
+  ]
+}

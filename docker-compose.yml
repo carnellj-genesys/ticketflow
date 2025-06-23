@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Development service
+  tickettaker-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3001:3001"  # API server
+      - "5173:5173"  # Vite dev server
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - VITE_WEBHOOK_ENABLED=${VITE_WEBHOOK_ENABLED:-false}
+      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://api.genesys.com/webhook/tickets}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - tickettaker-network
+    profiles:
+      - dev
+
+  # Production service
+  tickettaker-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:80"      # Nginx
+      - "3001:3001"  # API server (direct access)
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - VITE_WEBHOOK_ENABLED=${VITE_WEBHOOK_ENABLED:-false}
+      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://api.genesys.com/webhook/tickets}
+    volumes:
+      - ./server/db.json:/app/server/db.json
+    networks:
+      - tickettaker-network
+    profiles:
+      - prod
+    restart: unless-stopped
+
+  # Production service with custom webhook configuration
+  tickettaker-prod-webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "8080:80"    # Nginx on different port
+      - "3002:3001"  # API server on different port
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - VITE_WEBHOOK_ENABLED=true
+      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://api.genesys.com/webhook/tickets}
+    volumes:
+      - ./server/db.json:/app/server/db.json
+    networks:
+      - tickettaker-network
+    profiles:
+      - prod-webhook
+    restart: unless-stopped
+
+networks:
+  tickettaker-network:
+    driver: bridge 
