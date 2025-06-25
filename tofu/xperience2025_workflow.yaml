@@ -1,0 +1,491 @@
+workflow:
+  name: Xperience2025 - Process Ticket-TF
+  description: Process an inbound ticket
+  startUpRef: "/workflow/states/state[Initial State_10]"
+  defaultLanguage: en-us
+  supportedLanguages:
+    en-us:
+      none: true
+  variables:
+    - queueVariable:
+        name: Flow.CriticalQueueInfo
+        initialValue:
+          noValue: true
+        isInput: false
+        isOutput: false
+    - stringVariable:
+        name: Flow.DataReceived
+        initialValue:
+          noValue: true
+        isInput: false
+        isOutput: false
+    - queueVariable:
+        name: Flow.HighQueueInfo
+        initialValue:
+          noValue: true
+        isInput: false
+        isOutput: false
+    - jsonVariable:
+        name: Flow.jsonData
+        initialValue:
+          noValue: true
+        isInput: true
+        isOutput: false
+  settingsErrorHandling:
+    errorHandling:
+      endWorkflow:
+        none: true
+  states:
+    - state:
+        name: Initial State
+        refId: Initial State_10
+        variables:
+          - stringVariable:
+              name: State.action
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.changed
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.created
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.email
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.HighQueueId
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.IssueDescription
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.IssuePhoneNumber
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.IssueStatus
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.IssueTitle
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.priority
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.SMSConversationId
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.SMSCorrelationId
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringCollectionVariable:
+              name: State.SMSDetailsErrorCode
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.SMSErrorCode
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - integerVariable:
+              name: State.SMSStatus
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.SMSUserMessage
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.SMSUserParams
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+          - stringVariable:
+              name: State.TicketId
+              initialValue:
+                noValue: true
+              isInput: false
+              isOutput: false
+        actions:
+          - updateData:
+              name: Update Data
+              statements:
+                - string:
+                    variable: Flow.DataReceived
+                    value:
+                      lit: "\"Received\""
+          - updateData:
+              name: Retrieve Ticket Data from Flow
+              statements:
+                - string:
+                    variable: State.TicketId
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.id)
+                - string:
+                    variable: State.IssueTitle
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.issue_title)
+                - string:
+                    variable: State.IssueDescription
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.issue_description)
+                - string:
+                    variable: State.IssueStatus
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.status)
+                - string:
+                    variable: State.priority
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.priority)
+                - string:
+                    variable: State.email
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.email)
+                - string:
+                    variable: State.created
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.created)
+                - string:
+                    variable: State.changed
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.changed)
+                - string:
+                    variable: State.action
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.action)
+                - string:
+                    variable: State.IssuePhoneNumber
+                    value:
+                      exp: ToString(Flow.jsonData.webhooksInvocation.body.phone_number)
+          - switch:
+              name: Check what the action is
+              evaluate:
+                firstMatch:
+                  string:
+                    value:
+                      exp: State.action
+                    cases:
+                      - case:
+                          value:
+                            lit: CREATE
+                          actions:
+                            - switch:
+                                name: Determine Criticality
+                                evaluate:
+                                  firstMatch:
+                                    string:
+                                      value:
+                                        exp: State.priority
+                                      cases:
+                                        - case:
+                                            value:
+                                              lit: Critical
+                                            actions:
+                                              - findQueue:
+                                                  name: Find Critical Priority Queue
+                                                  findName:
+                                                    lit: xPerience2025_Critical_Queue-TF
+                                                  findResult:
+                                                    var: Flow.CriticalQueueInfo
+                                                  outputs:
+                                                    found:
+                                                      actions:
+                                                        - callData:
+                                                            name: Call Data Action
+                                                            timeout:
+                                                              lit:
+                                                                minutes: 1
+                                                            category:
+                                                              XPerience2025-Integration-TF:
+                                                                dataAction:
+                                                                  Xperience2025_AgentlessSMS-TF:
+                                                                    inputs:
+                                                                      BODY:
+                                                                        lit: Hi.  You have been placed on the highest priority queue.  Any agent will call your shortly to assist you
+                                                                      FromMOBILE:
+                                                                        lit: "+19206773490"
+                                                                      MOBILE:
+                                                                        exp: State.IssuePhoneNumber
+                                                                    successOutputs:
+                                                                      conversationId:
+                                                                        var: State.SMSConversationId
+                                                                      fromAddress:
+                                                                        noValue: true
+                                                                      id:
+                                                                        noValue: true
+                                                                      messengerType:
+                                                                        noValue: true
+                                                                      selfUri:
+                                                                        noValue: true
+                                                                      textBody:
+                                                                        noValue: true
+                                                                      timestamp:
+                                                                        noValue: true
+                                                                      toAddress:
+                                                                        noValue: true
+                                                                      user.id:
+                                                                        noValue: true
+                                                                      user.selfUri:
+                                                                        noValue: true
+                                                                    failureOutputs:
+                                                                      errorCode:
+                                                                        var: State.SMSErrorCode
+                                                                      status:
+                                                                        var: State.SMSStatus
+                                                                      correlationId:
+                                                                        var: State.SMSCorrelationId
+                                                                      entityId:
+                                                                        noValue: true
+                                                                      entityName:
+                                                                        noValue: true
+                                                                      userMessage:
+                                                                        var: State.SMSUserMessage
+                                                                      userParamsMessage:
+                                                                        var: State.SMSUserParams
+                                                                      userParams.key:
+                                                                        noValue: true
+                                                                      userParams.value:
+                                                                        noValue: true
+                                                                      details.errorCode:
+                                                                        var: State.SMSDetailsErrorCode
+                                                                      details.fieldName:
+                                                                        noValue: true
+                                                                      details.entityId:
+                                                                        noValue: true
+                                                                      details.entityName:
+                                                                        noValue: true
+                                                        - updateData:
+                                                            name: Set Critical Queue id
+                                                            statements:
+                                                              - string:
+                                                                  variable: State.HighQueueId
+                                                                  value:
+                                                                    exp: Flow.CriticalQueueInfo.id
+                                                        - callData:
+                                                            name: Create a critical callback
+                                                            timeout:
+                                                              lit:
+                                                                minutes: 1
+                                                            category:
+                                                              XPerience2025-Integration-TF:
+                                                                dataAction:
+                                                                  Xperience2025-CreateCallback-TF:
+                                                                    inputs:
+                                                                      callbackNumber:
+                                                                        exp: State.IssuePhoneNumber
+                                                                      queueId:
+                                                                        exp: State.HighQueueId
+                                                                    failureOutputs:
+                                                                      errorCode:
+                                                                        noValue: true
+                                                                      status:
+                                                                        noValue: true
+                                                                      correlationId:
+                                                                        noValue: true
+                                                                      entityId:
+                                                                        noValue: true
+                                                                      entityName:
+                                                                        noValue: true
+                                                                      userMessage:
+                                                                        noValue: true
+                                                                      userParamsMessage:
+                                                                        noValue: true
+                                                                      userParams.key:
+                                                                        noValue: true
+                                                                      userParams.value:
+                                                                        noValue: true
+                                                                      details.errorCode:
+                                                                        noValue: true
+                                                                      details.fieldName:
+                                                                        noValue: true
+                                                                      details.entityId:
+                                                                        noValue: true
+                                                                      details.entityName:
+                                                                        noValue: true
+                                        - case:
+                                            value:
+                                              lit: High
+                                            actions:
+                                              - findQueue:
+                                                  name: Find High Priority Queue
+                                                  findName:
+                                                    lit: xPerience2025_High_Queue-TF
+                                                  findResult:
+                                                    var: Flow.HighQueueInfo
+                                                  outputs:
+                                                    found:
+                                                      actions:
+                                                        - callData:
+                                                            name: Call Data Action
+                                                            timeout:
+                                                              lit:
+                                                                minutes: 1
+                                                            category:
+                                                              XPerience2025-Integration-TF:
+                                                                dataAction:
+                                                                  Xperience2025_AgentlessSMS-TF:
+                                                                    inputs:
+                                                                      BODY:
+                                                                        lit: Hi.  You have been placed on a priority queue.  An agent will contact you in the next 60 minutes to assist you.
+                                                                      FromMOBILE:
+                                                                        lit: "+19206773490"
+                                                                      MOBILE:
+                                                                        exp: State.IssuePhoneNumber
+                                                                    successOutputs:
+                                                                      conversationId:
+                                                                        var: State.SMSConversationId
+                                                                      fromAddress:
+                                                                        noValue: true
+                                                                      id:
+                                                                        noValue: true
+                                                                      messengerType:
+                                                                        noValue: true
+                                                                      selfUri:
+                                                                        noValue: true
+                                                                      textBody:
+                                                                        noValue: true
+                                                                      timestamp:
+                                                                        noValue: true
+                                                                      toAddress:
+                                                                        noValue: true
+                                                                      user.id:
+                                                                        noValue: true
+                                                                      user.selfUri:
+                                                                        noValue: true
+                                                                    failureOutputs:
+                                                                      errorCode:
+                                                                        var: State.SMSErrorCode
+                                                                      status:
+                                                                        var: State.SMSStatus
+                                                                      correlationId:
+                                                                        var: State.SMSCorrelationId
+                                                                      entityId:
+                                                                        noValue: true
+                                                                      entityName:
+                                                                        noValue: true
+                                                                      userMessage:
+                                                                        var: State.SMSUserMessage
+                                                                      userParamsMessage:
+                                                                        var: State.SMSUserParams
+                                                                      userParams.key:
+                                                                        noValue: true
+                                                                      userParams.value:
+                                                                        noValue: true
+                                                                      details.errorCode:
+                                                                        var: State.SMSDetailsErrorCode
+                                                                      details.fieldName:
+                                                                        noValue: true
+                                                                      details.entityId:
+                                                                        noValue: true
+                                                                      details.entityName:
+                                                                        noValue: true
+                                                        - wait:
+                                                            name: Wait for 2 minutes- High Simulation
+                                                            trimDurationNearMaxRunningTime:
+                                                              lit: false
+                                                            duration:
+                                                              lit:
+                                                                minutes: 2
+                                                        - updateData:
+                                                            name: Set High Priority Queue id
+                                                            statements:
+                                                              - string:
+                                                                  variable: State.HighQueueId
+                                                                  value:
+                                                                    exp: Flow.HighQueueInfo.id
+                                                        - callData:
+                                                            name: Create a high priority callback
+                                                            timeout:
+                                                              lit:
+                                                                minutes: 1
+                                                            category:
+                                                              XPerience2025-Integration-TF:
+                                                                dataAction:
+                                                                  Xperience2025-CreateCallback-TF:
+                                                                    inputs:
+                                                                      callbackNumber:
+                                                                        exp: State.IssuePhoneNumber
+                                                                      queueId:
+                                                                        exp: State.HighQueueId
+                                                                    failureOutputs:
+                                                                      errorCode:
+                                                                        noValue: true
+                                                                      status:
+                                                                        noValue: true
+                                                                      correlationId:
+                                                                        noValue: true
+                                                                      entityId:
+                                                                        noValue: true
+                                                                      entityName:
+                                                                        noValue: true
+                                                                      userMessage:
+                                                                        noValue: true
+                                                                      userParamsMessage:
+                                                                        noValue: true
+                                                                      userParams.key:
+                                                                        noValue: true
+                                                                      userParams.value:
+                                                                        noValue: true
+                                                                      details.errorCode:
+                                                                        noValue: true
+                                                                      details.fieldName:
+                                                                        noValue: true
+                                                                      details.entityId:
+                                                                        noValue: true
+                                                                      details.entityName:
+                                                                        noValue: true
+                                        - case:
+                                            value:
+                                              lit: Medium
+                      - case:
+                          value:
+                            lit: UPDATE
+                      - case:
+                          value:
+                            lit: DELETE
+          - endWorkflow:
+              name: End Workflow
+              exitReason:
+                noValue: true

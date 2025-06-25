@@ -45,26 +45,15 @@
       "changed": "2025-06-22T23:40:20.890Z"
     },
     {
-      "_id": "1750635834761",
-      "issue_title": "My refrigerator is making a funny noise",
-      "issue_description": "Every time I close my refrigerator door the motor kicks and it sounds like gates of hell are opening",
-      "email": "john.carnell@genesys.com",
-      "phone_number": "+15551234567",
-      "status": "Open",
-      "priority": "Critical",
-      "created": "2025-06-22T23:43:54.761Z",
-      "changed": "2025-06-22T23:43:54.761Z"
-    },
-    {
-      "_id": "1750709427214",
-      "issue_title": "Mobile app crashes on startup",
-      "issue_description": "This isseu sucks",
+      "_id": "1750879454111",
+      "issue_title": "This is a test ticket2",
+      "issue_description": "This is a problem",
       "email": "john.carnell@genesys.com",
       "phone_number": "+19202651560",
       "status": "Open",
       "priority": "Critical",
-      "created": "2025-06-23T20:10:27.214Z",
-      "changed": "2025-06-23T20:10:27.214Z"
+      "created": "2025-06-25T19:24:14.111Z",
+      "changed": "2025-06-25T19:24:14.111Z"
     }
   ]
 }

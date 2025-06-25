@@ -26,10 +26,17 @@ class WebhookService {
   constructor() {
     this.config = {
       url: import.meta.env.VITE_WEBHOOK_URL || 'https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events',
+      //url: 'https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/2ca8f19af77d94df74805445a915d00ddcede113b8d848ff620b0cd7fae20f047fa28fd4758aae5b33ac57e8aeb8aa02/events',
       enabled: import.meta.env.VITE_WEBHOOK_ENABLED !== 'false', // Default to true, can be explicitly disabled
       timeout: 5000 // 5 second timeout
     };
-  }
+    
+    // Debug logging to show which URL is being used
+    console.log('🔗 Webhook Service Initialized:');
+    console.log('📤 Webhook URL:', this.config.url);
+    console.log('📤 Webhook Enabled:', this.config.enabled);
+    console.log('📤 Environment VITE_WEBHOOK_URL:', import.meta.env.VITE_WEBHOOK_URL);
+  } 
 
   private logWebhookRequest(action: string, ticketId: string, url: string) {
     console.group(`🔗 Webhook Request: ${action} for ticket ${ticketId}`);

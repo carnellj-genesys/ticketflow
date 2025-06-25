@@ -3,6 +3,11 @@ terraform {
     genesyscloud = {
       source = "mypurecloud/genesyscloud"
     }
+    
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.4"
+    }
   }
 }
 
