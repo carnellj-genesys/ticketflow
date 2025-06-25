@@ -1,3 +1,25 @@
+/*
+ * Data Actions Configuration for TicketFlow Integration
+ * 
+ * This file defines Genesys Cloud integration actions that enable the TicketFlow system
+ * to interact with Genesys Cloud services. It creates two main data actions:
+ * 
+ * 1. Xperience2025-CreateCallback: Creates callback requests in Genesys Cloud
+ *    - Allows the system to schedule callbacks for customers
+ *    - Takes queue ID and callback phone number as input
+ *    - Posts to the Genesys Cloud callback API endpoint
+ * 
+ * 2. Xperience2025_AgentlessSMS: Sends SMS messages without agent intervention
+ *    - Enables automated SMS notifications to customers
+ *    - Takes message body, from number, and to number as input
+ *    - Posts to the Genesys Cloud agentless messaging API
+ * 
+ * Both actions are part of the "XPerience2025-Integration-TF" category and
+ * are associated with the main integration module defined in integrations.tf.
+ * These actions are used by the workflow defined in flows.tf to automate
+ * customer communication when tickets are created or updated.
+ */
+
 resource "genesyscloud_integration_action" "Xperience2025-CreateCallback" {
   category = "XPerience2025-Integration-TF"
   config_request {

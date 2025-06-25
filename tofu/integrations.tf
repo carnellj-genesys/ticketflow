@@ -1,3 +1,30 @@
+/*
+ * Genesys Cloud Integration Configuration for TicketFlow
+ * 
+ * This file sets up the core integrations between TicketFlow and Genesys Cloud:
+ * 
+ * 1. Webhook Integration (xPerience2025_eventhook):
+ *    - Creates a webhook integration for receiving events from Genesys Cloud
+ *    - Configured with 200 invocations per minute rate limit
+ *    - Used by the process automation trigger to notify TicketFlow of ticket events
+ * 
+ * 2. Data Actions Integration Module:
+ *    - Uses the public Genesys Cloud data actions integration module
+ *    - Configures OAuth credentials for API access
+ *    - Enables the data actions defined in dataactions.tf to work
+ * 
+ * 3. OAuth Token Management:
+ *    - Retrieves OAuth tokens using client credentials flow
+ *    - Validates required environment variables are set
+ *    - Fetches integration data to extract webhook URL and ID
+ * 
+ * 4. Environment Configuration:
+ *    - Automatically updates .env.development with the webhook URL
+ *    - Provides outputs for debugging and external use
+ * 
+ * This file is the foundation for all Genesys Cloud communication in TicketFlow.
+ */
+
 resource "genesyscloud_integration" "xPerience2025_eventhook" {
   intended_state = "ENABLED"
   config {
