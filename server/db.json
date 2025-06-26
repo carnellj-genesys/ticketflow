@@ -34,26 +34,15 @@
       "changed": "2025-06-22T16:49:46.170Z"
     },
     {
-      "_id": "1750635620890",
-      "issue_title": "My app keeps crashing and rebooting my computer",
-      "issue_description": "I am working with NewCo app and it keeps dying.  Its crashing my computer and I can't get any work done with this.",
-      "email": "john.carnell@genesys.com",
-      "phone_number": "+15551234567",
-      "status": "Open",
-      "priority": "Critical",
-      "created": "2025-06-22T23:40:20.890Z",
-      "changed": "2025-06-22T23:40:20.890Z"
-    },
-    {
-      "_id": "1750879454111",
-      "issue_title": "This is a test ticket2",
-      "issue_description": "This is a problem",
+      "_id": "1750976010126",
+      "issue_title": "My app keeps crashing",
+      "issue_description": "This is a new ticket",
       "email": "john.carnell@genesys.com",
       "phone_number": "+19202651560",
       "status": "Open",
       "priority": "Critical",
-      "created": "2025-06-25T19:24:14.111Z",
-      "changed": "2025-06-25T19:24:14.111Z"
+      "created": "2025-06-26T22:13:30.126Z",
+      "changed": "2025-06-26T22:13:30.126Z"
     }
   ]
 }
