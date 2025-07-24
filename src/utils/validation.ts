@@ -29,6 +29,13 @@ export const validateIssueDescription = (description: string): { isValid: boolea
   return { isValid: true };
 };
 
+export const validateNotes = (notes: string): { isValid: boolean; error?: string } => {
+  if (notes.length > 1000) {
+    return { isValid: false, error: 'Notes must be 1000 characters or less' };
+  }
+  return { isValid: true };
+};
+
 export const validateEmailField = (email: string): { isValid: boolean; error?: string } => {
   if (!email.trim()) {
     return { isValid: false, error: 'Email is required' };

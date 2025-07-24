@@ -6,6 +6,7 @@ export interface Ticket {
   priority: 'Critical' | 'High' | 'Medium' | 'Low';
   email: string;                  // Email validation required
   phone_number: string;           // US E.164 phone number format (+1XXXXXXXXXX)
+  notes: string;                  // Agent notes (multi-line)
   created: string;                // ISO date string
   changed: string;                // ISO date string
 }
@@ -17,6 +18,7 @@ export interface CreateTicketRequest {
   priority: 'Critical' | 'High' | 'Medium' | 'Low';
   email: string;
   phone_number: string;
+  notes: string;
 }
 
 export interface UpdateTicketRequest {
@@ -26,4 +28,5 @@ export interface UpdateTicketRequest {
   priority?: 'Critical' | 'High' | 'Medium' | 'Low';
   email?: string;
   phone_number?: string;
+  notes?: string;
 } 

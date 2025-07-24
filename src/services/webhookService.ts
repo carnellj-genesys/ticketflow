@@ -16,6 +16,7 @@ interface WebhookPayload {
   priority: 'Critical' | 'High' | 'Medium' | 'Low';
   email: string;
   phone_number: string;
+  notes: string;
   created: string;
   changed: string;
 }
@@ -83,6 +84,7 @@ class WebhookService {
       priority: ticket.priority,
       email: ticket.email,
       phone_number: ticket.phone_number,
+      notes: ticket.notes,
       created: ticket.created,
       changed: ticket.changed
     };

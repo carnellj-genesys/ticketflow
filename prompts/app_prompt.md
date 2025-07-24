@@ -10,7 +10,8 @@ You are tasked with developing and maintaining the **TicketFlow** application - 
 - **Build Tool**: Vite
 - **Styling**: CSS with CSS Custom Properties
 - **HTTP Client**: Axios
-- **Backend**: Express.js with JSON Server
+- **Backend**: Express.js with SQLite database
+- **Database**: SQLite with better-sqlite3
 - **Testing**: Vitest with React Testing Library
 - **Containerization**: Docker with multi-stage builds
 
@@ -21,24 +22,50 @@ You are tasked with developing and maintaining the **TicketFlow** application - 
 - Sortable and filterable ticket table
 - Real-time status updates
 - Priority and status management
+- Agent notes field for internal communication
+- Auto-title generation from description (first 100 characters)
+- Auto-status generation (defaults to "Open")
+- SQLite database persistence with automatic migration
 
 ### 2. User Interface
 - Responsive design for desktop, tablet, and mobile
 - Dark mode support with persistent preference
 - Modern, clean UI with accessibility features
 - Form validation with real-time feedback
+- Multi-line notes field for agents
+- Paginated ticket table with sorting
 
 ### 3. Webhook Integration
 - Automatic notifications for ticket operations
 - Configurable webhook endpoints
 - Error handling and retry logic
 - Runtime enable/disable toggle
+- Notes field included in webhook payloads
 
 ### 4. API Layer
 - RESTful API with comprehensive endpoints
 - CORS support for cross-origin requests
 - Request/response logging for debugging
 - Error handling and status codes
+- SQLite database with prepared statements
+
+### 5. Database Management
+- SQLite database with automatic schema creation
+- Data migration from JSON to SQLite
+- Backup creation and data integrity checks
+- Transaction safety and ACID compliance
+- Graceful shutdown handling
+
+### 6. Auto-Generation Features
+- **Auto-Title Generation**: Automatic title generation when no title is provided
+  - Uses first 100 characters of description as title
+  - Adds "..." for descriptions longer than 100 characters
+  - Works for both POST (create) and PUT (update) operations
+  - Ensures all tickets have meaningful titles for organization
+- **Auto-Status Generation**: Automatic status setting when no status is provided
+  - Defaults to "Open" status for new tickets
+  - Works for both POST (create) and PUT (update) operations
+  - Ensures all tickets have valid status for workflow management
 
 ## Development Guidelines
 
@@ -81,6 +108,9 @@ ticketflow/
 │   ├── utils/              # Utility functions
 │   └── styles/             # Global styles
 ├── server/                 # Express.js backend
+│   ├── server.js           # Main server file
+│   ├── database.js         # SQLite database service
+│   └── tickets.db          # SQLite database file
 ├── public/                 # Static assets
 ├── scripts/                # Build and deployment scripts
 └── test/                   # Test configuration
@@ -93,6 +123,41 @@ ticketflow/
 - `POST /rest/ticket` - Create new ticket
 - `PUT /rest/ticket/:id` - Update ticket
 - `DELETE /rest/ticket/:id` - Delete ticket
+
+## Ticket Data Structure
+
+### Ticket Fields
+- `_id`: Unique identifier (auto-generated)
+- `issue_title`: Brief description (max 100 characters)
+- `issue_description`: Detailed description (max 500 characters)
+- `status`: Current status ('Open', 'In-progress', 'Closed')
+- `priority`: Priority level ('Critical', 'High', 'Medium', 'Low')
+- `email`: Contact email (validated)
+- `phone_number`: US E.164 phone number format (+1XXXXXXXXXX)
+- `notes`: Agent notes for internal communication (max 1000 characters, optional)
+- `created`: ISO date string
+- `changed`: ISO date string
+
+### Request Types
+- `CreateTicketRequest`: All fields required except notes (optional)
+- `UpdateTicketRequest`: All fields optional for partial updates
+
+## Database Schema
+
+```sql
+CREATE TABLE tickets (
+  _id TEXT PRIMARY KEY,
+  issue_title TEXT NOT NULL,
+  issue_description TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('Open', 'In-progress', 'Closed')),
+  priority TEXT NOT NULL CHECK (priority IN ('Critical', 'High', 'Medium', 'Low')),
+  email TEXT NOT NULL,
+  phone_number TEXT NOT NULL,
+  notes TEXT DEFAULT '',
+  created TEXT NOT NULL,
+  changed TEXT NOT NULL
+);
+```
 
 ## Environment Configuration
 
@@ -124,7 +189,7 @@ docker run -p 80:80 -p 3001:3001 -e VITE_WEBHOOK_ENABLED=true ticketflow:prod
 
 ### Ticket Management
 - **TicketTable**: Main table displaying all tickets with sorting and filtering
-- **TicketForm**: Form for creating and editing tickets
+- **TicketForm**: Form for creating and editing tickets with notes field
 - **TicketRow**: Individual ticket row component
 - **ConfirmationModal**: Modal for confirming destructive actions
 
@@ -136,7 +201,34 @@ docker run -p 80:80 -p 3001:3001 -e VITE_WEBHOOK_ENABLED=true ticketflow:prod
 
 ### Services
 - **ticketService**: API calls for ticket operations
-- **webhookService**: Webhook notification handling
+- **webhookService**: Webhook notification handling with notes support
+- **databaseService**: SQLite database operations and migration
+
+## Validation Rules
+
+### Field Validation
+- **Issue Title**: Required, max 100 characters
+- **Issue Description**: Required, max 500 characters
+- **Email**: Required, valid email format
+- **Phone Number**: Required, US E.164 format (+1XXXXXXXXXX)
+- **Status**: Required, must be 'Open', 'In-progress', or 'Closed'
+- **Priority**: Required, must be 'Critical', 'High', 'Medium', or 'Low'
+- **Notes**: Optional, max 1000 characters
+
+## Database Migration
+
+### Automatic Migration Process
+1. **Startup Check**: Server checks for existing `db.json` file
+2. **Duplicate Prevention**: Skips migration if SQLite already has data
+3. **Data Migration**: Migrates all tickets with enhanced logging
+4. **Verification**: Runs comprehensive database verification
+5. **Backup**: Creates `db.json.backup` for safety
+
+### Migration Features
+- **Schema Validation**: Checks all required fields are present
+- **Data Integrity**: Verifies ticket count and structure
+- **Error Handling**: Continues migration even if individual tickets fail
+- **Transaction Safety**: Uses SQLite transactions for data consistency
 
 ## Testing Strategy
 
@@ -206,4 +298,4 @@ npm run server
 
 ---
 
-**Remember**: Always prioritize user experience, code quality, and maintainability. The TicketFlow application should be intuitive, reliable, and easy to extend with new features.
+**Remember**: Always prioritize user experience, code quality, and maintainability. The TicketFlow application should be intuitive, reliable, and easy to extend with new features. The notes field provides agents with a dedicated space for internal communication without cluttering the main ticket description. The SQLite database provides robust data persistence with automatic migration from JSON files.

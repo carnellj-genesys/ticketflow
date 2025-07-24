@@ -6,7 +6,8 @@ import {
   validateEmailField,
   validatePhoneNumberField,
   validateStatus,
-  validatePriority
+  validatePriority,
+  validateNotes
 } from '../../utils/validation';
 
 interface TicketFormProps {
@@ -28,7 +29,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
     email: ticket?.email || '',
     phone_number: ticket?.phone_number || '',
     status: ticket?.status || 'Open',
-    priority: ticket?.priority || 'Medium'
+    priority: ticket?.priority || 'Medium',
+    notes: ticket?.notes || ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,7 +43,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
         email: ticket.email,
         phone_number: ticket.phone_number,
         status: ticket.status,
-        priority: ticket.priority
+        priority: ticket.priority,
+        notes: ticket.notes
       });
     }
   }, [ticket]);
@@ -66,6 +69,9 @@ export const TicketForm: React.FC<TicketFormProps> = ({
         break;
       case 'priority':
         validation = validatePriority(value);
+        break;
+      case 'notes':
+        validation = validateNotes(value);
         break;
       default:
         validation = { isValid: true };
@@ -94,7 +100,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
     e.preventDefault();
     
     // Validate all fields
-    const fields = ['issue_title', 'issue_description', 'email', 'phone_number', 'status', 'priority'];
+    const fields = ['issue_title', 'issue_description', 'email', 'phone_number', 'status', 'priority', 'notes'];
     const isValid = fields.every(field => validateField(field, formData[field as keyof typeof formData]));
 
     if (isValid) {
@@ -107,6 +113,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
         if (formData.phone_number !== ticket.phone_number) updateData.phone_number = formData.phone_number;
         if (formData.status !== ticket.status) updateData.status = formData.status;
         if (formData.priority !== ticket.priority) updateData.priority = formData.priority;
+        if (formData.notes !== ticket.notes) updateData.notes = formData.notes;
         onSubmit(updateData);
       } else {
         // If creating, send all required fields
@@ -116,7 +123,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
           email: formData.email,
           phone_number: formData.phone_number,
           status: formData.status,
-          priority: formData.priority
+          priority: formData.priority,
+          notes: formData.notes
         };
         onSubmit(createData);
       }
@@ -253,6 +261,27 @@ export const TicketForm: React.FC<TicketFormProps> = ({
           <option value="Closed">Closed</option>
         </select>
         {errors.status && <div className="form-error">{errors.status}</div>}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="notes" className="form-label">
+          Agent Notes
+          <Tooltip text="Internal notes for agents (max 1000 characters)">
+            <span style={{ marginLeft: 'var(--spacing-xs)', color: 'var(--text-muted)' }}>?</span>
+          </Tooltip>
+        </label>
+        <textarea
+          id="notes"
+          name="notes"
+          value={formData.notes}
+          onChange={handleChange}
+          className={`form-textarea ${errors.notes ? 'error' : ''}`}
+          placeholder="Add internal notes for agents..."
+          maxLength={1000}
+          rows={4}
+          disabled={isLoading}
+        />
+        {errors.notes && <div className="form-error">{errors.notes}</div>}
       </div>
 
       <div className="modal-footer">

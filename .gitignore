@@ -25,6 +25,12 @@ coverage
 *.sln
 *.sw?
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+server/tickets.db
+server/db.json.backup
 
 # Terraform
 .terraform

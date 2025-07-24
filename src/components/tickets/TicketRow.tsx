@@ -54,7 +54,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({ ticket, onEdit, onDelete }
       <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {ticket.issue_title}
       </td>
-      <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <td style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {ticket.issue_description}
       </td>
       <td>
@@ -67,11 +67,14 @@ export const TicketRow: React.FC<TicketRowProps> = ({ ticket, onEdit, onDelete }
           {ticket.priority}
         </span>
       </td>
-      <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {ticket.email}
       </td>
-      <td style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <td style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {ticket.phone_number}
+      </td>
+      <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {ticket.notes || '-'}
       </td>
       <td style={{ width: '120px', minWidth: '120px' }}>
         <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>

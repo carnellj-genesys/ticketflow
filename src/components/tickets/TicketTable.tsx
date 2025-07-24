@@ -86,7 +86,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   return (
     <div>
       <div className="table-container" style={{ overflowX: 'auto', maxWidth: '100%' }}>
-        <table className="table" style={{ minWidth: '1000px' }}>
+        <table className="table" style={{ minWidth: '1200px' }}>
           <thead>
             <tr>
               <th style={{ width: '80px', minWidth: '80px' }}>
@@ -95,7 +95,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               <th style={{ width: '200px', minWidth: '200px' }}>
                 <SortableHeader field="issue_title">Title</SortableHeader>
               </th>
-              <th style={{ width: '300px', minWidth: '300px' }}>
+              <th style={{ width: '250px', minWidth: '250px' }}>
                 <SortableHeader field="issue_description">Description</SortableHeader>
               </th>
               <th style={{ width: '100px', minWidth: '100px' }}>
@@ -104,11 +104,14 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               <th style={{ width: '100px', minWidth: '100px' }}>
                 <SortableHeader field="priority">Priority</SortableHeader>
               </th>
-              <th style={{ width: '180px', minWidth: '180px' }}>
+              <th style={{ width: '150px', minWidth: '150px' }}>
                 <SortableHeader field="email">Email</SortableHeader>
               </th>
-              <th style={{ width: '140px', minWidth: '140px' }}>
+              <th style={{ width: '120px', minWidth: '120px' }}>
                 <SortableHeader field="phone_number">Phone</SortableHeader>
+              </th>
+              <th style={{ width: '200px', minWidth: '200px' }}>
+                <SortableHeader field="notes">Notes</SortableHeader>
               </th>
               <th style={{ width: '120px', minWidth: '120px' }}>Actions</th>
             </tr>
