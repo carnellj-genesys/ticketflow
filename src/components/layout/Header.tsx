@@ -3,6 +3,7 @@ import { HelpIcon } from '../common/HelpIcon';
 import { DarkModeToggle } from '../common/DarkModeToggle';
 import { WebhookToggle } from '../common/WebhookToggle';
 
+
 // Modern SVG Ticket Icon
 const TicketIcon: React.FC = () => (
   <svg 
@@ -71,8 +72,8 @@ export const Header: React.FC = () => {
               title="Help & Information" 
               content={helpContent}
             />
-            <DarkModeToggle />
-            <WebhookToggle />
+                          <DarkModeToggle />
+              <WebhookToggle />    
           </div>
         </div>
       </div>

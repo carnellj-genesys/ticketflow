@@ -10,26 +10,42 @@ export const WebhookToggle: React.FC<WebhookToggleProps> = ({ onToggle }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize with current webhook state
+    // Initialize with current webhook state from backend
     const initializeState = async () => {
-      // Add a small delay to show loading state in tests
-      await new Promise(resolve => setTimeout(resolve, 10));
-      setIsEnabled(webhookService.isEnabled());
-      setIsLoading(false);
+      try {
+        // Add a small delay to show loading state in tests
+        await new Promise(resolve => setTimeout(resolve, 10));
+        const status = await webhookService.getStatus();
+        console.log('🔗 WebhookToggle: Initial status from backend:', status);
+        setIsEnabled(status);
+      } catch (error) {
+        console.error('Failed to get webhook status:', error);
+        setIsEnabled(false);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     initializeState();
   }, []);
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     const newState = !isEnabled;
+    console.log('🔗 WebhookToggle: Setting local state to:', newState);
     setIsEnabled(newState);
     
-    // Update webhook service state
-    webhookService.setEnabled(newState);
-    
-    // Notify parent component
-    onToggle?.(newState);
+    try {
+      // Update webhook service state on backend
+      await webhookService.setEnabled(newState);
+      
+      // Notify parent component
+      onToggle?.(newState);
+    } catch (error) {
+      // Revert state if update failed
+      console.log('🔗 WebhookToggle: Reverting state due to error');
+      setIsEnabled(!newState);
+      console.error('Failed to update webhook status:', error);
+    }
   };
 
   if (isLoading) {
@@ -39,6 +55,8 @@ export const WebhookToggle: React.FC<WebhookToggleProps> = ({ onToggle }) => {
       </div>
     );
   }
+
+  console.log('🔗 WebhookToggle: Rendering with isEnabled:', isEnabled, 'className:', `webhook-toggle-small ${isEnabled ? 'enabled' : 'disabled'}`);
 
   return (
     <button

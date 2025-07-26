@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 import { WebhookToggle } from '../WebhookToggle';
 import { webhookService } from '../../../services/webhookService';
 
 // Mock the webhook service
 vi.mock('../../../services/webhookService', () => ({
   webhookService: {
-    isEnabled: vi.fn(),
+    getStatus: vi.fn(),
     setEnabled: vi.fn()
   }
 }));
@@ -18,55 +18,43 @@ describe('WebhookToggle', () => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('renders with enabled state', async () => {
-    mockWebhookService.isEnabled.mockReturnValue(true);
+  it('renders enabled state correctly', async () => {
+    mockWebhookService.getStatus.mockResolvedValue(true);
 
     render(<WebhookToggle />);
 
     await waitFor(() => {
       const button = screen.getByRole('button');
-      expect(button).toBeInTheDocument();
       expect(button).toHaveClass('webhook-toggle-small', 'enabled');
       expect(button).toHaveAttribute('aria-label', 'Webhook integration enabled. Click to disable.');
       expect(button).toHaveAttribute('title', 'Webhook integration enabled');
     });
   });
 
-  it('renders with disabled state', async () => {
-    mockWebhookService.isEnabled.mockReturnValue(false);
+  it('renders disabled state correctly', async () => {
+    mockWebhookService.getStatus.mockResolvedValue(false);
 
     render(<WebhookToggle />);
 
     await waitFor(() => {
       const button = screen.getByRole('button');
-      expect(button).toBeInTheDocument();
       expect(button).toHaveClass('webhook-toggle-small', 'disabled');
       expect(button).toHaveAttribute('aria-label', 'Webhook integration disabled. Click to enable.');
       expect(button).toHaveAttribute('title', 'Webhook integration disabled');
     });
   });
 
-  it('shows loading skeleton initially', async () => {
-    mockWebhookService.isEnabled.mockReturnValue(true);
+  it('shows loading state initially', () => {
+    mockWebhookService.getStatus.mockImplementation(() => new Promise(() => {})); // Never resolves
 
     render(<WebhookToggle />);
 
-    // Should show skeleton initially
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(document.querySelector('.webhook-toggle-small-skeleton')).toBeInTheDocument();
-
-    // Wait for the component to finish loading
-    await waitFor(() => {
-      expect(screen.getByRole('button')).toBeInTheDocument();
-    });
   });
 
   it('toggles webhook state when clicked', async () => {
-    mockWebhookService.isEnabled.mockReturnValue(false);
+    mockWebhookService.getStatus.mockResolvedValue(false);
+    mockWebhookService.setEnabled.mockResolvedValue();
 
     render(<WebhookToggle />);
 
@@ -78,47 +66,48 @@ describe('WebhookToggle', () => {
     const button = screen.getByRole('button');
     fireEvent.click(button);
 
-    expect(mockWebhookService.setEnabled).toHaveBeenCalledWith(true);
+    await waitFor(() => {
+      expect(mockWebhookService.setEnabled).toHaveBeenCalledWith(true);
+    });
   });
 
-  it('calls onToggle callback when toggled', async () => {
+  it('calls onToggle callback when state changes', async () => {
     const onToggle = vi.fn();
-    mockWebhookService.isEnabled.mockReturnValue(true);
+    mockWebhookService.getStatus.mockResolvedValue(true);
+    mockWebhookService.setEnabled.mockResolvedValue();
 
     render(<WebhookToggle onToggle={onToggle} />);
 
     await waitFor(() => {
       const button = screen.getByRole('button');
+      expect(button).toHaveClass('enabled');
     });
 
     const button = screen.getByRole('button');
     fireEvent.click(button);
 
-    expect(onToggle).toHaveBeenCalledWith(false);
-  });
-
-  it('displays link icon', async () => {
-    mockWebhookService.isEnabled.mockReturnValue(true);
-
-    render(<WebhookToggle />);
-
     await waitFor(() => {
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-      expect(svg).toHaveAttribute('width', '16');
-      expect(svg).toHaveAttribute('height', '16');
+      expect(onToggle).toHaveBeenCalledWith(false);
     });
   });
 
-  it('has proper accessibility attributes', async () => {
-    mockWebhookService.isEnabled.mockReturnValue(true);
+  it('reverts state if backend update fails', async () => {
+    mockWebhookService.getStatus.mockResolvedValue(true);
+    mockWebhookService.setEnabled.mockRejectedValue(new Error('Network error'));
 
     render(<WebhookToggle />);
 
     await waitFor(() => {
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('aria-label');
-      expect(button).toHaveAttribute('title');
+      expect(button).toHaveClass('enabled');
+    });
+
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+
+    // Should revert to enabled state after failed update
+    await waitFor(() => {
+      expect(button).toHaveClass('enabled');
     });
   });
 }); 

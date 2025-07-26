@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import type { Ticket, CreateTicketRequest, UpdateTicketRequest } from '../types/ticket';
-import { webhookService } from './webhookService';
+
 import { config } from '../utils/config';
 
 class TicketService {
@@ -95,8 +95,7 @@ class TicketService {
       });
       this.logResponse('POST', url, response);
       
-      // Notify webhook service about the created ticket
-      await webhookService.notifyTicketCreated(response.data);
+
       
       return response.data;
     } catch (error) {
@@ -115,8 +114,7 @@ class TicketService {
       });
       this.logResponse('PUT', url, response);
       
-      // Notify webhook service about the updated ticket
-      await webhookService.notifyTicketUpdated(response.data);
+
       
       return response.data;
     } catch (error) {
@@ -130,16 +128,10 @@ class TicketService {
     this.logRequest('DELETE', url);
     
     try {
-      // Get the ticket data before deleting it for the webhook
-      const ticketToDelete = await this.getTicketById(id);
-      
       const response = await axios.delete(url, {
         headers: this.getHeaders()
       });
       this.logResponse('DELETE', url, response);
-      
-      // Notify webhook service about the deleted ticket with actual data
-      await webhookService.notifyTicketDeleted(ticketToDelete);
       
     } catch (error) {
       this.logError('DELETE', url, error);

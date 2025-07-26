@@ -49,11 +49,12 @@ describe('TicketService', () => {
 
       expect(result).toEqual([mockTicket]);
       expect(axios.default.get).toHaveBeenCalledWith(
-        '/rest/ticket',
+        'http://localhost:3001/rest/ticket',
         expect.objectContaining({
           headers: expect.objectContaining({
             'x-apikey': '68544b73bb5cccc333f6d956',
-            'CORS-API-Key': '68544b73bb5cccc333f6d956'
+            'CORS-API-Key': '68544b73bb5cccc333f6d956',
+            'Content-Type': 'application/json'
           })
         })
       );
@@ -78,8 +79,14 @@ describe('TicketService', () => {
 
       expect(result).toEqual(mockTicket);
       expect(axios.default.get).toHaveBeenCalledWith(
-        '/rest/ticket/1',
-        expect.any(Object)
+        'http://localhost:3001/rest/ticket/1',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-apikey': '68544b73bb5cccc333f6d956',
+            'CORS-API-Key': '68544b73bb5cccc333f6d956',
+            'Content-Type': 'application/json'
+          })
+        })
       );
     });
   });
@@ -87,7 +94,6 @@ describe('TicketService', () => {
   describe('createTicket', () => {
     it('should create a ticket successfully', async () => {
       const axios = await import('axios');
-      const { webhookService } = await import('../webhookService');
       const mockResponse = { data: mockTicket };
       vi.mocked(axios.default.post).mockResolvedValue(mockResponse);
 
@@ -105,18 +111,22 @@ describe('TicketService', () => {
 
       expect(result).toEqual(mockTicket);
       expect(axios.default.post).toHaveBeenCalledWith(
-        '/rest/ticket',
+        'http://localhost:3001/rest/ticket',
         createData,
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-apikey': '68544b73bb5cccc333f6d956',
+            'CORS-API-Key': '68544b73bb5cccc333f6d956',
+            'Content-Type': 'application/json'
+          })
+        })
       );
-      expect(webhookService.notifyTicketCreated).toHaveBeenCalledWith(mockTicket);
     });
   });
 
   describe('updateTicket', () => {
     it('should update a ticket successfully', async () => {
       const axios = await import('axios');
-      const { webhookService } = await import('../webhookService');
       const mockResponse = { data: mockTicket };
       vi.mocked(axios.default.put).mockResolvedValue(mockResponse);
 
@@ -128,34 +138,37 @@ describe('TicketService', () => {
 
       expect(result).toEqual(mockTicket);
       expect(axios.default.put).toHaveBeenCalledWith(
-        '/rest/ticket/1',
+        'http://localhost:3001/rest/ticket/1',
         updateData,
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-apikey': '68544b73bb5cccc333f6d956',
+            'CORS-API-Key': '68544b73bb5cccc333f6d956',
+            'Content-Type': 'application/json'
+          })
+        })
       );
-      expect(webhookService.notifyTicketUpdated).toHaveBeenCalledWith(mockTicket);
     });
   });
 
   describe('deleteTicket', () => {
     it('should delete a ticket successfully', async () => {
       const axios = await import('axios');
-      const { webhookService } = await import('../webhookService');
-      const mockGetResponse = { data: mockTicket };
       const mockDeleteResponse = { status: 204 };
-      vi.mocked(axios.default.get).mockResolvedValue(mockGetResponse);
       vi.mocked(axios.default.delete).mockResolvedValue(mockDeleteResponse);
 
       await ticketService.deleteTicket('1');
 
-      expect(axios.default.get).toHaveBeenCalledWith(
-        'http://localhost:3001/rest/ticket/1',
-        expect.any(Object)
-      );
       expect(axios.default.delete).toHaveBeenCalledWith(
-        '/rest/ticket/1',
-        expect.any(Object)
+        'http://localhost:3001/rest/ticket/1',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-apikey': '68544b73bb5cccc333f6d956',
+            'CORS-API-Key': '68544b73bb5cccc333f6d956',
+            'Content-Type': 'application/json'
+          })
+        })
       );
-      expect(webhookService.notifyTicketDeleted).toHaveBeenCalledWith(mockTicket);
     });
   });
 }); 

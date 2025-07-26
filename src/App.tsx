@@ -19,21 +19,7 @@ function App() {
   const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
-  // Handle webhook errors
-  const handleWebhookError = useCallback((event: CustomEvent) => {
-    const { action, ticketId, error: webhookError } = event.detail;
-    setError(`Webhook ${action} failed for ticket ${ticketId}: ${webhookError}`);
-  }, []);
 
-  useEffect(() => {
-    // Add event listener for webhook errors
-    window.addEventListener('webhook-error', handleWebhookError as EventListener);
-    
-    // Cleanup event listener on unmount
-    return () => {
-      window.removeEventListener('webhook-error', handleWebhookError as EventListener);
-    };
-  }, [handleWebhookError]);
 
   const fetchTickets = useCallback(async () => {
     try {

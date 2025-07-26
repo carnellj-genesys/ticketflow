@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { databaseService } from './database.js';
 import { logger } from './logger.js';
+import { webhookService } from './webhookService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -335,7 +336,7 @@ app.get('/rest/ticket/:id', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.post('/rest/ticket', (req, res) => {
+app.post('/rest/ticket', async (req, res) => {
   try {
     // Generate title from description if no title is provided
     let issueTitle = req.body.issue_title;
@@ -366,6 +367,14 @@ app.post('/rest/ticket', (req, res) => {
     const success = databaseService.createTicket(newTicket);
     if (success) {
       console.log(`✅ POST /rest/ticket - Created ticket ${newTicket._id}`);
+      
+      // Send webhook notification
+      try {
+        await webhookService.notifyTicketCreated(newTicket);
+      } catch (webhookError) {
+        console.warn(`⚠️ Webhook notification failed for ticket ${newTicket._id}:`, webhookError.message);
+      }
+      
       res.status(201).json(newTicket);
     } else {
       console.log(`❌ POST /rest/ticket - Failed to create ticket`);
@@ -417,7 +426,7 @@ app.post('/rest/ticket', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.put('/rest/ticket/:id', (req, res) => {
+app.put('/rest/ticket/:id', async (req, res) => {
   try {
     // Generate title from description if no title is provided in update
     let updateData = { ...req.body };
@@ -439,6 +448,14 @@ app.put('/rest/ticket/:id', (req, res) => {
     if (success) {
       const updatedTicket = databaseService.getTicketById(req.params.id);
       console.log(`✅ PUT /rest/ticket/${req.params.id} - Updated ticket`);
+      
+      // Send webhook notification
+      try {
+        await webhookService.notifyTicketUpdated(updatedTicket);
+      } catch (webhookError) {
+        console.warn(`⚠️ Webhook notification failed for ticket ${req.params.id}:`, webhookError.message);
+      }
+      
       res.json(updatedTicket);
     } else {
       console.log(`❌ PUT /rest/ticket/${req.params.id} - Ticket not found or update failed`);
@@ -480,11 +497,24 @@ app.put('/rest/ticket/:id', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.delete('/rest/ticket/:id', (req, res) => {
+app.delete('/rest/ticket/:id', async (req, res) => {
   try {
+    // Get the ticket before deleting it for webhook notification
+    const ticketToDelete = databaseService.getTicketById(req.params.id);
+    
     const success = databaseService.deleteTicket(req.params.id);
     if (success) {
       console.log(`✅ DELETE /rest/ticket/${req.params.id} - Deleted ticket`);
+      
+      // Send webhook notification
+      if (ticketToDelete) {
+        try {
+          await webhookService.notifyTicketDeleted(ticketToDelete);
+        } catch (webhookError) {
+          console.warn(`⚠️ Webhook notification failed for ticket ${req.params.id}:`, webhookError.message);
+        }
+      }
+      
       res.status(204).send();
     } else {
       console.log(`❌ DELETE /rest/ticket/${req.params.id} - Ticket not found`);
@@ -520,6 +550,79 @@ app.delete('/rest/ticket/:id', (req, res) => {
  */
 app.get('/echo', (req, res) => {
   res.json(req.query);
+});
+
+/**
+ * @swagger
+ * /rest/webhook/status:
+ *   get:
+ *     summary: Get webhook status
+ *     description: Get the current webhook enabled/disabled status
+ *     tags: [Webhook]
+ *     responses:
+ *       200:
+ *         description: Webhook status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enabled:
+ *                   type: boolean
+ *                   description: Whether webhooks are enabled
+ */
+app.get('/rest/webhook/status', (req, res) => {
+  try {
+    res.json({ enabled: webhookService.isEnabled() });
+  } catch (error) {
+    console.error('❌ Error getting webhook status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /rest/webhook/status:
+ *   put:
+ *     summary: Update webhook status
+ *     description: Enable or disable webhook notifications
+ *     tags: [Webhook]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               enabled:
+ *                 type: boolean
+ *                 description: Whether to enable webhooks
+ *     responses:
+ *       200:
+ *         description: Webhook status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enabled:
+ *                   type: boolean
+ *                   description: Current webhook status
+ */
+app.put('/rest/webhook/status', (req, res) => {
+  try {
+    const { enabled } = req.body;
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ error: 'enabled must be a boolean' });
+    }
+    
+    webhookService.setEnabled(enabled);
+    console.log(`🔗 Webhook ${enabled ? 'enabled' : 'disabled'} via API`);
+    res.json({ enabled: webhookService.isEnabled() });
+  } catch (error) {
+    console.error('❌ Error updating webhook status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Error handling

@@ -1,192 +1,63 @@
 import axios from 'axios';
-import type { Ticket } from '../types/ticket';
 import { config } from '../utils/config';
 
-interface WebhookConfig {
-  url: string;
+interface WebhookStatus {
   enabled: boolean;
-  timeout: number;
-}
-
-interface WebhookPayload {
-  id: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE';
-  issue_title: string;
-  issue_description: string;
-  status: 'Open' | 'In-progress' | 'Closed';
-  priority: 'Critical' | 'High' | 'Medium' | 'Low';
-  email: string;
-  phone_number: string;
-  notes: string;
-  created: string;
-  changed: string;
 }
 
 class WebhookService {
-  private config: WebhookConfig;
+  private baseUrl: string;
+  private apiKey: string;
+  private corsApiKey: string;
 
   constructor() {
-    this.config = {
-      url: config.webhook.url,
-      enabled: config.webhook.enabled,
-      timeout: config.webhook.timeout
-    };
-    
-    // Debug logging to show which URL is being used
-    console.log('🔗 Webhook Service Initialized:');
-    console.log('📤 Webhook URL:', this.config.url);
-    console.log('📤 Webhook Enabled:', this.config.enabled);
-  } 
-
-  private logWebhookRequest(action: string, ticketId: string, url: string) {
-    console.group(`🔗 Webhook Request: ${action} for ticket ${ticketId}`);
-    console.log('📤 Webhook URL:', url);
-    console.log('📤 Webhook Enabled:', this.config.enabled);
-    console.groupEnd();
+    this.baseUrl = config.api.baseUrl;
+    this.apiKey = config.api.apiKey;
+    this.corsApiKey = config.api.corsApiKey;
+    console.log('🔗 WebhookService: Using baseUrl:', this.baseUrl);
+    console.log('🔗 WebhookService: Environment VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
   }
 
-  private logWebhookSuccess(action: string, ticketId: string, response: any) {
-    console.group(`✅ Webhook Success: ${action} for ticket ${ticketId}`);
-    console.log('📥 Response Status:', response.status);
-    console.log('📥 Response Status Code:', response.status);
-    console.log('📥 Response Headers:', response.headers);
-    console.log('📥 Response Data:', response.data);
-    console.log('📥 Response Body (JSON):', JSON.stringify(response.data, null, 2));
-    console.groupEnd();
-  }
-
-  private logWebhookError(action: string, ticketId: string, error: any) {
-    console.group(`❌ Webhook Error: ${action} for ticket ${ticketId}`);
-    console.error('📥 Error Details:', error);
-    console.error('📥 Error Message:', error.message);
-    if (error.response) {
-      console.error('📥 Error Status Code:', error.response.status);
-      console.error('📥 Error Status Text:', error.response.statusText);
-      console.error('📥 Error Headers:', error.response.headers);
-      console.error('📥 Error Data:', error.response.data);
-      console.error('📥 Error Body (JSON):', JSON.stringify(error.response.data, null, 2));
-    } else if (error.request) {
-      console.error('📥 No Response Received:', error.request);
-    } else {
-      console.error('📥 Request Setup Error:', error.message);
-    }
-    console.groupEnd();
-  }
-
-  private createPayload(ticket: Ticket, action: 'CREATE' | 'UPDATE' | 'DELETE'): WebhookPayload {
+  private getHeaders() {
     return {
-      id: ticket._id,
-      action: action,
-      issue_title: ticket.issue_title,
-      issue_description: ticket.issue_description,
-      status: ticket.status,
-      priority: ticket.priority,
-      email: ticket.email,
-      phone_number: ticket.phone_number,
-      notes: ticket.notes,
-      created: ticket.created,
-      changed: ticket.changed
+      'x-apikey': this.apiKey,
+      'CORS-API-Key': this.corsApiKey,
+      'Content-Type': 'application/json'
     };
   }
 
-  private async sendWebhook(payload: WebhookPayload, action: string): Promise<void> {
-    if (!this.config.enabled) {
-      console.log(`🔗 Webhook disabled, skipping ${action} for ticket ${payload.id}`);
-      return;
-    }
-
-    this.logWebhookRequest(action, payload.id, this.config.url);
-
+  async getStatus(): Promise<boolean> {
     try {
-      const response = await axios.post(this.config.url, payload, {
-        timeout: this.config.timeout,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      console.log('🔗 Frontend: Getting webhook status from:', `${this.baseUrl}/webhook/status`);
+      const response = await axios.get<WebhookStatus>(`${this.baseUrl}/webhook/status`, {
+        headers: this.getHeaders()
       });
-
-      this.logWebhookSuccess(action, payload.id, response);
+      console.log('🔗 Frontend: Webhook status response:', response.data);
+      return response.data.enabled;
     } catch (error) {
-      this.logWebhookError(action, payload.id, error);
+      console.error('❌ Error getting webhook status:', error);
+      return false; // Default to disabled on error
+    }
+  }
+
+  async setEnabled(enabled: boolean): Promise<void> {
+    try {
+      console.log('🔗 Frontend: Setting webhook status to:', enabled);
+      const response = await axios.put<WebhookStatus>(`${this.baseUrl}/webhook/status`, 
+        { enabled }, 
+        { headers: this.getHeaders() }
+      );
+      console.log('🔗 Frontend: Webhook status update response:', response.data);
+      console.log(`🔗 Webhook ${enabled ? 'enabled' : 'disabled'} via frontend`);
+    } catch (error) {
+      console.error('❌ Error updating webhook status:', error);
       throw error;
     }
   }
 
-  // Public methods for different ticket operations
-  async notifyTicketCreated(ticket: Ticket): Promise<void> {
-    const payload = this.createPayload(ticket, 'CREATE');
-    
-    // Use setTimeout to make the webhook call asynchronous
-    setTimeout(async () => {
-      try {
-        await this.sendWebhook(payload, 'CREATE');
-      } catch (error) {
-        // Log error but don't throw - webhook failures shouldn't affect main operation
-        console.error('Webhook CREATE failed:', error);
-        // Emit a custom event that the App component can listen to
-        window.dispatchEvent(new CustomEvent('webhook-error', {
-          detail: {
-            action: 'CREATE',
-            ticketId: ticket._id,
-            error: error instanceof Error ? error.message : 'Unknown webhook error'
-          }
-        }));
-      }
-    }, 0);
-  }
-
-  async notifyTicketUpdated(ticket: Ticket): Promise<void> {
-    const payload = this.createPayload(ticket, 'UPDATE');
-    
-    setTimeout(async () => {
-      try {
-        await this.sendWebhook(payload, 'UPDATE');
-      } catch (error) {
-        console.error('Webhook UPDATE failed:', error);
-        window.dispatchEvent(new CustomEvent('webhook-error', {
-          detail: {
-            action: 'UPDATE',
-            ticketId: ticket._id,
-            error: error instanceof Error ? error.message : 'Unknown webhook error'
-          }
-        }));
-      }
-    }, 0);
-  }
-
-  async notifyTicketDeleted(ticket: Ticket): Promise<void> {
-    const payload = this.createPayload(ticket, 'DELETE');
-    
-    setTimeout(async () => {
-      try {
-        await this.sendWebhook(payload, 'DELETE');
-      } catch (error) {
-        console.error('Webhook DELETE failed:', error);
-        window.dispatchEvent(new CustomEvent('webhook-error', {
-          detail: {
-            action: 'DELETE',
-            ticketId: ticket._id,
-            error: error instanceof Error ? error.message : 'Unknown webhook error'
-          }
-        }));
-      }
-    }, 0);
-  }
-
-  // Method to check if webhook is enabled
-  isEnabled(): boolean {
-    return this.config.enabled;
-  }
-
-  // Method to enable/disable webhook at runtime
-  setEnabled(enabled: boolean): void {
-    this.config.enabled = enabled;
-    console.log(`🔗 Webhook integration ${enabled ? 'enabled' : 'disabled'}`);
-  }
-
-  // Method to get webhook URL (for debugging)
-  getWebhookUrl(): string {
-    return this.config.url;
+  // Convenience methods for backward compatibility
+  async isEnabled(): Promise<boolean> {
+    return this.getStatus();
   }
 }
 
