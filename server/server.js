@@ -5,6 +5,7 @@ import { dirname, join } from 'path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { databaseService } from './database.js';
+import { logger } from './logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -216,15 +217,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// Logging middleware
-app.use((req, res, next) => {
-  console.log(`🚀 Mock Server Request: ${req.method} ${req.path}`);
-  console.log('📤 Headers:', req.headers);
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('📤 Request Body:', req.body);
-  }
-  next();
-});
+// Add logging middleware
+app.use(logger.requestLogger());
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -256,10 +250,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/rest/ticket', (req, res) => {
   try {
     const tickets = databaseService.getAllTickets();
-    console.log(`✅ GET /rest/ticket - Returning ${tickets.length} tickets`);
+    logger.info(`✅ GET /rest/ticket - Returning ${tickets.length} tickets`);
     res.json(tickets);
   } catch (error) {
-    console.error('❌ Error getting tickets:', error);
+    logger.logError(error, { endpoint: '/rest/ticket', method: 'GET' });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -302,14 +296,14 @@ app.get('/rest/ticket/:id', (req, res) => {
   try {
     const ticket = databaseService.getTicketById(req.params.id);
     if (ticket) {
-      console.log(`✅ GET /rest/ticket/${req.params.id} - Found ticket`);
+      logger.info(`✅ GET /rest/ticket/${req.params.id} - Found ticket`);
       res.json(ticket);
     } else {
-      console.log(`❌ GET /rest/ticket/${req.params.id} - Ticket not found`);
+      logger.warn(`❌ GET /rest/ticket/${req.params.id} - Ticket not found`);
       res.status(404).json({ error: 'Ticket not found' });
     }
   } catch (error) {
-    console.error('❌ Error getting ticket:', error);
+    logger.logError(error, { endpoint: `/rest/ticket/${req.params.id}`, method: 'GET' });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -549,20 +543,28 @@ process.on('SIGTERM', () => {
 
 // Start server
 const startServer = async () => {
-  // Migrate data from JSON to SQLite on startup
-  await databaseService.migrateFromJson();
-  
-  // Verify database state after migration
-  console.log('\n🔍 Verifying database state...');
-  databaseService.verifyDatabaseState();
-  
-  app.listen(PORT, () => {
-    console.log(`\n🎯 Mock Express Server is running on http://localhost:${PORT}`);
-    console.log(`📊 API endpoints available at http://localhost:${PORT}/rest`);
-    console.log(`📚 Swagger documentation at http://localhost:${PORT}/api-docs`);
-    console.log(`🔧 CORS enabled for development`);
-    console.log(`💾 SQLite database: ${join(__dirname, 'tickets.db')}`);
-  });
+  try {
+    // Log configuration
+    logger.logConfiguration();
+    
+    // Migrate data from JSON to SQLite on startup
+    await databaseService.migrateFromJson();
+    
+    // Verify database state after migration
+    logger.info('\n🔍 Verifying database state...');
+    databaseService.verifyDatabaseState();
+    
+    app.listen(PORT, () => {
+      logger.info(`\n🎯 Mock Express Server is running on http://localhost:${PORT}`);
+      logger.info(`📊 API endpoints available at http://localhost:${PORT}/rest`);
+      logger.info(`📚 Swagger documentation at http://localhost:${PORT}/api-docs`);
+      logger.info(`🔧 CORS enabled for development`);
+      logger.info(`💾 SQLite database: ${join(__dirname, 'tickets.db')}`);
+    });
+  } catch (error) {
+    logger.logError(error, { context: 'Server startup' });
+    process.exit(1);
+  }
 };
 
 startServer().catch(console.error); 

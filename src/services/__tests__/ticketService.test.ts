@@ -30,6 +30,7 @@ describe('TicketService', () => {
     priority: 'Medium',
     email: 'test@example.com',
     phone_number: '+15551234567',
+    notes: '',
     created: '2024-01-15T10:30:00.000Z',
     changed: '2024-01-15T10:30:00.000Z'
   };
@@ -48,7 +49,7 @@ describe('TicketService', () => {
 
       expect(result).toEqual([mockTicket]);
       expect(axios.default.get).toHaveBeenCalledWith(
-        'http://localhost:3001/rest/ticket',
+        '/rest/ticket',
         expect.objectContaining({
           headers: expect.objectContaining({
             'x-apikey': '68544b73bb5cccc333f6d956',
@@ -77,7 +78,7 @@ describe('TicketService', () => {
 
       expect(result).toEqual(mockTicket);
       expect(axios.default.get).toHaveBeenCalledWith(
-        'http://localhost:3001/rest/ticket/1',
+        '/rest/ticket/1',
         expect.any(Object)
       );
     });
@@ -96,14 +97,15 @@ describe('TicketService', () => {
         status: 'Open',
         priority: 'High',
         email: 'new@example.com',
-        phone_number: '+15551234567'
+        phone_number: '+15551234567',
+        notes: ''
       };
 
       const result = await ticketService.createTicket(createData);
 
       expect(result).toEqual(mockTicket);
       expect(axios.default.post).toHaveBeenCalledWith(
-        'http://localhost:3001/rest/ticket',
+        '/rest/ticket',
         createData,
         expect.any(Object)
       );
@@ -126,7 +128,7 @@ describe('TicketService', () => {
 
       expect(result).toEqual(mockTicket);
       expect(axios.default.put).toHaveBeenCalledWith(
-        'http://localhost:3001/rest/ticket/1',
+        '/rest/ticket/1',
         updateData,
         expect.any(Object)
       );
@@ -150,7 +152,7 @@ describe('TicketService', () => {
         expect.any(Object)
       );
       expect(axios.default.delete).toHaveBeenCalledWith(
-        'http://localhost:3001/rest/ticket/1',
+        '/rest/ticket/1',
         expect.any(Object)
       );
       expect(webhookService.notifyTicketDeleted).toHaveBeenCalledWith(mockTicket);

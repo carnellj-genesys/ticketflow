@@ -46,6 +46,22 @@ The application will be available at:
 
 **Note**: The application automatically migrates existing JSON data to SQLite on first startup.
 
+### Enhanced Logging Options
+```bash
+# Standard development
+npm run dev                    # Both frontend and backend
+npm run dev:server            # Backend only (INFO level)
+npm run dev:client            # Frontend only
+
+# Enhanced logging
+npm run dev:debug             # DEBUG level logging
+npm run dev:trace             # TRACE level logging
+npm run dev:file              # DEBUG + file logging
+npm run dev:performance       # Performance logging
+
+# See LOGGING_GUIDE.md for detailed logging options
+```
+
 ## 🔧 Node.js Version Compatibility
 
 ### Node.js 20+ (Recommended)

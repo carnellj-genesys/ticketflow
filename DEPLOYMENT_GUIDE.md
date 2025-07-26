@@ -56,6 +56,8 @@ npm run build
 
 **Replace `YOUR_SERVER_IP` with your actual server IP address.**
 
+**Note**: The frontend now uses relative URLs (`/rest`) as fallback instead of hardcoded localhost, making it more flexible for different deployment environments.
+
 ### **Step 3: Start the Backend Server**
 
 ```bash

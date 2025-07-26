@@ -9,6 +9,8 @@ const mockTickets: Ticket[] = [
     status: 'Open',
     priority: 'High',
     email: 'user@example.com',
+    phone_number: '+1234567890',
+    notes: '',
     created: '2024-01-15T10:30:00.000Z',
     changed: '2024-01-15T10:30:00.000Z'
   },
@@ -19,6 +21,8 @@ const mockTickets: Ticket[] = [
     status: 'In-progress',
     priority: 'Critical',
     email: 'admin@company.com',
+    phone_number: '+1234567891',
+    notes: '',
     created: '2024-01-14T14:20:00.000Z',
     changed: '2024-01-15T09:15:00.000Z'
   }
@@ -26,12 +30,12 @@ const mockTickets: Ticket[] = [
 
 export const handlers = [
   // GET all tickets
-  http.get('http://localhost:3001/rest/ticket', () => {
+  http.get('/rest/ticket', () => {
     return HttpResponse.json(mockTickets);
   }),
 
   // GET ticket by ID
-  http.get('http://localhost:3001/rest/ticket/:id', ({ params }) => {
+  http.get('/rest/ticket/:id', ({ params }) => {
     const ticket = mockTickets.find(t => t._id === params.id);
     if (ticket) {
       return HttpResponse.json(ticket);
@@ -40,7 +44,7 @@ export const handlers = [
   }),
 
   // POST new ticket
-  http.post('http://localhost:3001/rest/ticket', async ({ request }) => {
+  http.post('/rest/ticket', async ({ request }) => {
     const newTicket = await request.json() as Partial<Ticket>;
     const ticket: Ticket = {
       _id: Date.now().toString(),
@@ -49,6 +53,8 @@ export const handlers = [
       status: newTicket.status || 'Open',
       priority: newTicket.priority || 'Medium',
       email: newTicket.email || '',
+      phone_number: newTicket.phone_number || '',
+      notes: newTicket.notes || '',
       created: new Date().toISOString(),
       changed: new Date().toISOString()
     };
@@ -57,7 +63,7 @@ export const handlers = [
   }),
 
   // PUT update ticket
-  http.put('http://localhost:3001/rest/ticket/:id', async ({ params, request }) => {
+  http.put('/rest/ticket/:id', async ({ params, request }) => {
     const updates = await request.json() as Partial<Ticket>;
     const index = mockTickets.findIndex(t => t._id === params.id);
     if (index !== -1) {
@@ -72,7 +78,7 @@ export const handlers = [
   }),
 
   // DELETE ticket
-  http.delete('http://localhost:3001/rest/ticket/:id', ({ params }) => {
+  http.delete('/rest/ticket/:id', ({ params }) => {
     const index = mockTickets.findIndex(t => t._id === params.id);
     if (index !== -1) {
       mockTickets.splice(index, 1);

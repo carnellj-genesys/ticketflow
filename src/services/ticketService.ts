@@ -11,7 +11,7 @@ class TicketService {
   
   constructor() {
     // Initialize with default values, will be updated after config loads
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/rest';
+    this.baseUrl = import.meta.env.VITE_API_BASE_URL || '/rest';
     this.apiKey = import.meta.env.VITE_API_KEY || '68544b73bb5cccc333f6d956';
     this.corsApiKey = import.meta.env.VITE_CORS_API_KEY || '68544b73bb5cccc333f6d956';
     

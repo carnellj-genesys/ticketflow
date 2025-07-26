@@ -63,7 +63,7 @@ class ConfigManager {
     return {
       development: {
         api: {
-          baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/rest',
+          baseUrl: import.meta.env.VITE_API_BASE_URL || '/rest',
           apiKey: import.meta.env.VITE_API_KEY || '68544b73bb5cccc333f6d956',
           corsApiKey: import.meta.env.VITE_CORS_API_KEY || '68544b73bb5cccc333f6d956'
         },
@@ -75,7 +75,7 @@ class ConfigManager {
         server: {
           port: parseInt(import.meta.env.PORT || '3001'),
           cors: {
-            origins: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
+            origins: ['*'], // Allow all origins in development
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             headers: ['Content-Type', 'x-apikey', 'CORS-API-Key', 'Authorization']
           }
