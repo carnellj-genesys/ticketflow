@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-import { databaseService } from './database.js';
+import { databaseService } from './database-compatible.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,20 +19,16 @@ const swaggerOptions = {
     info: {
       title: 'TicketFlow API',
       version: '1.0.0',
-      description: 'A RESTful API for managing support tickets with SQLite persistence',
+      description: 'A comprehensive ticket management system API with auto-generation features',
       contact: {
-        name: 'TicketFlow Support',
+        name: 'API Support',
         email: 'support@ticketflow.com'
       }
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
-        description: 'Development server (localhost)'
-      },
-      {
-        url: `https://xper.loca.lt`,
-        description: 'Development server (tunnel)'
+        url: 'http://localhost:3001',
+        description: 'Development server'
       }
     ],
     components: {
@@ -83,12 +79,12 @@ const swaggerOptions = {
             created: {
               type: 'string',
               format: 'date-time',
-              description: 'ISO date string when ticket was created'
+              description: 'Creation timestamp'
             },
             changed: {
               type: 'string',
               format: 'date-time',
-              description: 'ISO date string when ticket was last modified'
+              description: 'Last modification timestamp'
             }
           }
         },
@@ -185,30 +181,14 @@ const swaggerOptions = {
       }
     }
   },
-  apis: ['./server/server.js']
+  apis: ['./server/server-compatible.js']
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow localhost origins
-    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-      return callback(null, true);
-    }
-    
-    // Allow tunnel domains (like loca.lt, ngrok.io, etc.)
-    if (origin.includes('loca.lt') || origin.includes('ngrok.io') || origin.includes('tunnel')) {
-      return callback(null, true);
-    }
-    
-    // Allow all origins in development (you can restrict this in production)
-    return callback(null, true);
-  },
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-apikey', 'CORS-API-Key', 'Authorization']
@@ -226,10 +206,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Swagger UI
+// Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Routes
 /**
  * @swagger
  * /rest/ticket:
@@ -239,7 +218,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *     tags: [Tickets]
  *     responses:
  *       200:
- *         description: List of all tickets
+ *         description: List of tickets
  *         content:
  *           application/json:
  *             schema:
@@ -253,9 +232,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.get('/rest/ticket', (req, res) => {
+app.get('/rest/ticket', async (req, res) => {
   try {
-    const tickets = databaseService.getAllTickets();
+    const tickets = await databaseService.getAllTickets();
     console.log(`✅ GET /rest/ticket - Returning ${tickets.length} tickets`);
     res.json(tickets);
   } catch (error) {
@@ -268,7 +247,7 @@ app.get('/rest/ticket', (req, res) => {
  * @swagger
  * /rest/ticket/{id}:
  *   get:
- *     summary: Get ticket by ID
+ *     summary: Get a ticket by ID
  *     description: Retrieve a specific ticket by its ID
  *     tags: [Tickets]
  *     parameters:
@@ -298,9 +277,9 @@ app.get('/rest/ticket', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.get('/rest/ticket/:id', (req, res) => {
+app.get('/rest/ticket/:id', async (req, res) => {
   try {
-    const ticket = databaseService.getTicketById(req.params.id);
+    const ticket = await databaseService.getTicketById(req.params.id);
     if (ticket) {
       console.log(`✅ GET /rest/ticket/${req.params.id} - Found ticket`);
       res.json(ticket);
@@ -319,7 +298,7 @@ app.get('/rest/ticket/:id', (req, res) => {
  * /rest/ticket:
  *   post:
  *     summary: Create a new ticket
- *     description: Create a new support ticket
+ *     description: Create a new ticket with auto-generation features for title and status
  *     tags: [Tickets]
  *     requestBody:
  *       required: true
@@ -334,6 +313,12 @@ app.get('/rest/ticket/:id', (req, res) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Ticket'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Internal server error
  *         content:
@@ -341,7 +326,7 @@ app.get('/rest/ticket/:id', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.post('/rest/ticket', (req, res) => {
+app.post('/rest/ticket', async (req, res) => {
   try {
     // Generate title from description if no title is provided
     let issueTitle = req.body.issue_title;
@@ -369,7 +354,7 @@ app.post('/rest/ticket', (req, res) => {
       changed: new Date().toISOString()
     };
     
-    const success = databaseService.createTicket(newTicket);
+    const success = await databaseService.createTicket(newTicket);
     if (success) {
       console.log(`✅ POST /rest/ticket - Created ticket ${newTicket._id}`);
       res.status(201).json(newTicket);
@@ -388,7 +373,7 @@ app.post('/rest/ticket', (req, res) => {
  * /rest/ticket/{id}:
  *   put:
  *     summary: Update a ticket
- *     description: Update an existing ticket by ID
+ *     description: Update an existing ticket by ID with auto-generation features
  *     tags: [Tickets]
  *     parameters:
  *       - in: path
@@ -423,7 +408,7 @@ app.post('/rest/ticket', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.put('/rest/ticket/:id', (req, res) => {
+app.put('/rest/ticket/:id', async (req, res) => {
   try {
     // Generate title from description if no title is provided in update
     let updateData = { ...req.body };
@@ -441,9 +426,9 @@ app.put('/rest/ticket/:id', (req, res) => {
       console.log(`📋 Auto-setting status to "Open" in update`);
     }
     
-    const success = databaseService.updateTicket(req.params.id, updateData);
+    const success = await databaseService.updateTicket(req.params.id, updateData);
     if (success) {
-      const updatedTicket = databaseService.getTicketById(req.params.id);
+      const updatedTicket = await databaseService.getTicketById(req.params.id);
       console.log(`✅ PUT /rest/ticket/${req.params.id} - Updated ticket`);
       res.json(updatedTicket);
     } else {
@@ -471,8 +456,16 @@ app.put('/rest/ticket/:id', (req, res) => {
  *           type: string
  *         description: Ticket ID
  *     responses:
- *       204:
+ *       200:
  *         description: Ticket deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Ticket deleted successfully"
  *       404:
  *         description: Ticket not found
  *         content:
@@ -486,12 +479,12 @@ app.put('/rest/ticket/:id', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.delete('/rest/ticket/:id', (req, res) => {
+app.delete('/rest/ticket/:id', async (req, res) => {
   try {
-    const success = databaseService.deleteTicket(req.params.id);
+    const success = await databaseService.deleteTicket(req.params.id);
     if (success) {
       console.log(`✅ DELETE /rest/ticket/${req.params.id} - Deleted ticket`);
-      res.status(204).send();
+      res.json({ message: 'Ticket deleted successfully' });
     } else {
       console.log(`❌ DELETE /rest/ticket/${req.params.id} - Ticket not found`);
       res.status(404).json({ error: 'Ticket not found' });
@@ -502,67 +495,47 @@ app.delete('/rest/ticket/:id', (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /echo:
- *   get:
- *     summary: Health check endpoint
- *     description: Simple health check that echoes back query parameters
- *     tags: [Health]
- *     parameters:
- *       - in: query
- *         name: message
- *         schema:
- *           type: string
- *         description: Optional message to echo back
- *     responses:
- *       200:
- *         description: Health check successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               additionalProperties: true
- */
-app.get('/echo', (req, res) => {
-  res.json(req.query);
-});
-
-// Error handling
-app.use((err, req, res, next) => {
-  console.error('❌ Mock Server Error:', err);
-  res.status(500).json({ error: 'Internal Server Error' });
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('🛑 Shutting down server...');
-  databaseService.close();
+  await databaseService.close();
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('🛑 Shutting down server...');
-  databaseService.close();
+  await databaseService.close();
   process.exit(0);
 });
 
-// Start server
 const startServer = async () => {
-  // Migrate data from JSON to SQLite on startup
-  await databaseService.migrateFromJson();
-  
-  // Verify database state after migration
-  console.log('\n🔍 Verifying database state...');
-  databaseService.verifyDatabaseState();
-  
-  app.listen(PORT, () => {
-    console.log(`\n🎯 Mock Express Server is running on http://localhost:${PORT}`);
-    console.log(`📊 API endpoints available at http://localhost:${PORT}/rest`);
-    console.log(`📚 Swagger documentation at http://localhost:${PORT}/api-docs`);
-    console.log(`🔧 CORS enabled for development`);
-    console.log(`💾 SQLite database: ${join(__dirname, 'tickets.db')}`);
-  });
+  try {
+    // Initialize database
+    await databaseService.initDatabase();
+    
+    // Migrate data from JSON if needed
+    await databaseService.migrateFromJson();
+    
+    // Verify database state
+    await databaseService.verifyDatabaseState();
+    
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🎯 Mock Express Server is running on http://localhost:${PORT}`);
+      console.log(`📊 API endpoints available at http://localhost:${PORT}/rest`);
+      console.log(`📚 Swagger documentation at http://localhost:${PORT}/api-docs`);
+      console.log(`🔧 CORS enabled for development`);
+      console.log(`💾 SQLite database: ${databaseService.dbPath}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
 };
 
-startServer().catch(console.error); 
+startServer(); 

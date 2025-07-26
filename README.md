@@ -46,6 +46,27 @@ The application will be available at:
 
 **Note**: The application automatically migrates existing JSON data to SQLite on first startup.
 
+## 🔧 Node.js Version Compatibility
+
+### Node.js 20+ (Recommended)
+The application is optimized for Node.js 20+ and uses `better-sqlite3` for enhanced performance.
+
+### Node.js 18+ (Compatible Version)
+If you're running Node.js 18+ (like on Amazon Linux), use the compatible version:
+
+```bash
+# Install dependencies (will show warnings but will work)
+npm install
+
+# Run the compatible server
+npm run dev:server-compatible
+
+# Or run the full application with compatible backend
+npm run dev:server-compatible & npm run dev:client
+```
+
+**Note**: The compatible version uses `sqlite3` instead of `better-sqlite3` and has the same functionality but slightly different performance characteristics.
+
 ## 🐳 Docker Development with Docker Compose
 
 ### Prerequisites
