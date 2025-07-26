@@ -117,9 +117,9 @@ export const TicketTable: React.FC<TicketTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {paginatedTickets.map(ticket => (
+            {paginatedTickets.map((ticket, index) => (
               <TicketRow
-                key={ticket._id}
+                key={`${ticket._id}-${index}`}
                 ticket={ticket}
                 onEdit={onEdit}
                 onDelete={onDelete}
