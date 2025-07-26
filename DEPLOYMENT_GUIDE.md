@@ -21,10 +21,25 @@ This creates a `dist/` folder with static files.
 
 ### **Step 2: Set Environment Variables**
 
-Create a `.env` file on your remote server:
+**Important**: Environment variables must be set at build time, not runtime for Vite applications.
 
+#### **Option A: Set Environment Variables Before Building**
 ```bash
-# Create .env file
+# Set environment variables before building
+export VITE_API_BASE_URL=http://YOUR_SERVER_IP:3001/rest
+export VITE_API_KEY=68544b73bb5cccc333f6d956
+export VITE_CORS_API_KEY=68544b73bb5cccc333f6d956
+export VITE_WEBHOOK_ENABLED=true
+export VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events
+export VITE_WEBHOOK_TIMEOUT=5000
+export PORT=3001
+
+# Then build
+npm run build
+```
+
+#### **Option B: Create .env File Before Building**
+```bash
 cat > .env << EOF
 VITE_API_BASE_URL=http://YOUR_SERVER_IP:3001/rest
 VITE_API_KEY=68544b73bb5cccc333f6d956
@@ -34,6 +49,9 @@ VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhoo
 VITE_WEBHOOK_TIMEOUT=5000
 PORT=3001
 EOF
+
+# Then build
+npm run build
 ```
 
 **Replace `YOUR_SERVER_IP` with your actual server IP address.**
@@ -157,19 +175,17 @@ origin: ['https://your-domain.com', 'http://your-domain.com']
 #!/bin/bash
 # Quick deployment script
 
+# Set environment variables
+export VITE_API_BASE_URL=http://$(curl -s ifconfig.me):3001/rest
+export VITE_API_KEY=68544b73bb5cccc333f6d956
+export VITE_CORS_API_KEY=68544b73bb5cccc333f6d956
+export VITE_WEBHOOK_ENABLED=true
+export VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events
+export VITE_WEBHOOK_TIMEOUT=5000
+export PORT=3001
+
 # Build the application
 npm run build
-
-# Create environment file
-cat > .env << EOF
-VITE_API_BASE_URL=http://$(curl -s ifconfig.me):3001/rest
-VITE_API_KEY=68544b73bb5cccc333f6d956
-VITE_CORS_API_KEY=68544b73bb5cccc333f6d956
-VITE_WEBHOOK_ENABLED=true
-VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events
-VITE_WEBHOOK_TIMEOUT=5000
-PORT=3001
-EOF
 
 # Start backend
 npm run server &

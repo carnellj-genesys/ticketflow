@@ -44,7 +44,7 @@ class ConfigManager {
   private environment: string;
 
   constructor() {
-    this.environment = process.env.NODE_ENV || 'development';
+    this.environment = import.meta.env.MODE || 'development';
   }
 
   async loadConfig(): Promise<void> {
@@ -63,17 +63,17 @@ class ConfigManager {
     return {
       development: {
         api: {
-          baseUrl: process.env.VITE_API_BASE_URL || 'http://localhost:3001/rest',
-          apiKey: process.env.VITE_API_KEY || '68544b73bb5cccc333f6d956',
-          corsApiKey: process.env.VITE_CORS_API_KEY || '68544b73bb5cccc333f6d956'
+          baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/rest',
+          apiKey: import.meta.env.VITE_API_KEY || '68544b73bb5cccc333f6d956',
+          corsApiKey: import.meta.env.VITE_CORS_API_KEY || '68544b73bb5cccc333f6d956'
         },
         webhook: {
-          enabled: process.env.VITE_WEBHOOK_ENABLED !== 'false',
-          url: process.env.VITE_WEBHOOK_URL || 'https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events',
-          timeout: parseInt(process.env.VITE_WEBHOOK_TIMEOUT || '5000')
+          enabled: import.meta.env.VITE_WEBHOOK_ENABLED !== 'false',
+          url: import.meta.env.VITE_WEBHOOK_URL || 'https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/407ea6a6f17305dad5ca10c33dbd2da5433dcdfe9c7e096dc9de0bf541c5a51c501d839441a7e9f1fe42f8add4ed6c84/events',
+          timeout: parseInt(import.meta.env.VITE_WEBHOOK_TIMEOUT || '5000')
         },
         server: {
-          port: parseInt(process.env.PORT || '3001'),
+          port: parseInt(import.meta.env.PORT || '3001'),
           cors: {
             origins: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -88,17 +88,17 @@ class ConfigManager {
       },
       production: {
         api: {
-          baseUrl: process.env.VITE_API_BASE_URL || 'https://api.ticketflow.com/rest',
-          apiKey: process.env.VITE_API_KEY || 'production-api-key',
-          corsApiKey: process.env.VITE_CORS_API_KEY || 'production-cors-key'
+          baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.ticketflow.com/rest',
+          apiKey: import.meta.env.VITE_API_KEY || 'production-api-key',
+          corsApiKey: import.meta.env.VITE_CORS_API_KEY || 'production-cors-key'
         },
         webhook: {
-          enabled: process.env.VITE_WEBHOOK_ENABLED !== 'false',
-          url: process.env.VITE_WEBHOOK_URL || 'https://api.genesys.com/webhook/tickets',
-          timeout: parseInt(process.env.VITE_WEBHOOK_TIMEOUT || '10000')
+          enabled: import.meta.env.VITE_WEBHOOK_ENABLED !== 'false',
+          url: import.meta.env.VITE_WEBHOOK_URL || 'https://api.genesys.com/webhook/tickets',
+          timeout: parseInt(import.meta.env.VITE_WEBHOOK_TIMEOUT || '10000')
         },
         server: {
-          port: parseInt(process.env.PORT || '3001'),
+          port: parseInt(import.meta.env.PORT || '3001'),
           cors: {
             origins: ['https://ticketflow.com'],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
