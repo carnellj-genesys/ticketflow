@@ -33,6 +33,10 @@ const swaggerOptions = {
         description: 'Development server (localhost)'
       },
       {
+        url: `http://65.183.100.158:${PORT}`,
+        description: 'Remote development server'
+      },
+      {
         url: `https://xper.loca.lt`,
         description: 'Development server (tunnel)'
       }
@@ -194,23 +198,7 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow localhost origins
-    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-      return callback(null, true);
-    }
-    
-    // Allow tunnel domains (like loca.lt, ngrok.io, etc.)
-    if (origin.includes('loca.lt') || origin.includes('ngrok.io') || origin.includes('tunnel')) {
-      return callback(null, true);
-    }
-    
-    // Allow all origins in development (you can restrict this in production)
-    return callback(null, true);
-  },
+  origin: true, // Allow all origins for demo
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-apikey', 'CORS-API-Key', 'Authorization']
