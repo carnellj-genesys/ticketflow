@@ -18,6 +18,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   onDelete,
   isLoading = false
 }) => {
+
   const [sortField, setSortField] = useState<SortField>('created');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,6 +54,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const totalPages = Math.ceil(sortedTickets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedTickets = sortedTickets.slice(startIndex, startIndex + itemsPerPage);
+
 
   const SortableHeader: React.FC<{ field: SortField; children: React.ReactNode }> = ({ field, children }) => (
     <div 

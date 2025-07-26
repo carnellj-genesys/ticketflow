@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import type { Ticket, CreateTicketRequest, UpdateTicketRequest } from '../types/ticket';
 import { webhookService } from './webhookService';
-import { configManager } from '../utils/config';
+import { config } from '../utils/config';
 
 class TicketService {
   private baseUrl: string;
@@ -10,26 +10,11 @@ class TicketService {
   private corsApiKey: string;
   
   constructor() {
-    // Initialize with default values, will be updated after config loads
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || '/rest';
-    this.apiKey = import.meta.env.VITE_API_KEY || '68544b73bb5cccc333f6d956';
-    this.corsApiKey = import.meta.env.VITE_CORS_API_KEY || '68544b73bb5cccc333f6d956';
-    
-    // Load configuration
-    this.loadConfig();
-  }
-  
-  private async loadConfig() {
-    try {
-      await configManager.loadConfig();
-      const apiConfig = configManager.getApiConfig();
-      this.baseUrl = apiConfig.baseUrl;
-      this.apiKey = apiConfig.apiKey;
-      this.corsApiKey = apiConfig.corsApiKey;
-      console.log(`🔧 TicketService configured with baseUrl: ${this.baseUrl}`);
-    } catch (error) {
-      console.warn('⚠️ Using fallback configuration for TicketService:', error);
-    }
+    // Use simple configuration
+    this.baseUrl = config.api.baseUrl;
+    this.apiKey = config.api.apiKey;
+    this.corsApiKey = config.api.corsApiKey;
+    console.log(`🔧 TicketService configured with baseUrl: ${this.baseUrl}`);
   }
   
   private getHeaders() {

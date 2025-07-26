@@ -32,7 +32,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({ ticket, onEdit, onDelete }
     <tr>
       <td style={{ maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         <button
-          onClick={() => onEdit(ticket._id)}
+          onClick={() => onEdit(ticket._id || '')}
           className="btn btn-sm"
           style={{
             background: 'none',
@@ -46,9 +46,9 @@ export const TicketRow: React.FC<TicketRowProps> = ({ ticket, onEdit, onDelete }
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap'
           }}
-          title={ticket._id}
+          title={ticket._id || 'Unknown'}
         >
-          {ticket._id.length > 8 ? `${ticket._id.substring(0, 8)}...` : ticket._id}
+          {ticket._id && ticket._id.length > 8 ? `${ticket._id.substring(0, 8)}...` : (ticket._id || 'Unknown')}
         </button>
       </td>
       <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -79,16 +79,16 @@ export const TicketRow: React.FC<TicketRowProps> = ({ ticket, onEdit, onDelete }
       <td style={{ width: '120px', minWidth: '120px' }}>
         <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
           <button
-            onClick={() => onEdit(ticket._id)}
+            onClick={() => onEdit(ticket._id || '')}
             className="btn btn-sm btn-secondary"
-            aria-label={`Edit ticket ${ticket._id}`}
+            aria-label={`Edit ticket ${ticket._id || 'Unknown'}`}
           >
             ✏️
           </button>
           <button
-            onClick={() => onDelete(ticket._id)}
+            onClick={() => onDelete(ticket._id || '')}
             className="btn btn-sm btn-delete"
-            aria-label={`Delete ticket ${ticket._id}`}
+            aria-label={`Delete ticket ${ticket._id || 'Unknown'}`}
           >
             🗑️
           </button>

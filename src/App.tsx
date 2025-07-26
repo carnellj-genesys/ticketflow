@@ -40,6 +40,7 @@ function App() {
       setLoading(true);
       setError(null);
       const data = await ticketService.getAllTickets();
+
       setTickets(data);
     } catch (err) {
       setError('Failed to load tickets. Please try again.');
