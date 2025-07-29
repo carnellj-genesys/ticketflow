@@ -201,13 +201,21 @@ app.use(cors({
   origin: true, // Allow all origins for demo
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'x-apikey', 'CORS-API-Key', 'Authorization']
+  allowedHeaders: ['Content-Type', 'x-apikey', 'CORS-API-Key', 'Authorization', 'host_header']
 }));
 
 app.use(express.json());
 
 // Add logging middleware
 app.use(logger.requestLogger());
+
+// Add custom header logging middleware
+app.use((req, res, next) => {
+  if (req.headers.host_header) {
+    console.log(`🔗 Received host_header: ${req.headers.host_header}`);
+  }
+  next();
+});
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

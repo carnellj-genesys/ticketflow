@@ -22,7 +22,8 @@ class WebhookService {
     return {
       'x-apikey': this.apiKey,
       'CORS-API-Key': this.corsApiKey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'host_header': 'apicall'
     };
   }
 
