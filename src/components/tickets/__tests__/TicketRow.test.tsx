@@ -5,13 +5,14 @@ import type { Ticket } from '../../../types/ticket';
 
 describe('TicketRow', () => {
   const mockTicket: Ticket = {
-    _id: '1234567890',
+    ticket_number: '1234567890',
     issue_title: 'Test Ticket Title',
     issue_description: 'This is a test ticket description that should be displayed properly',
     status: 'Open',
     priority: 'High',
     email: 'test@example.com',
     phone_number: '+15551234567',
+    notes: '',
     created: '2024-01-15T10:30:00.000Z',
     changed: '2024-01-15T10:30:00.000Z'
   };
@@ -92,18 +93,18 @@ describe('TicketRow', () => {
     expect(priorityBadge).toHaveClass('badge', 'badge-high');
   });
 
-  it('should truncate long IDs properly', () => {
-    const longIdTicket = { ...mockTicket, _id: 'verylongticketid123456789' };
+  it('should truncate long ticket numbers properly', () => {
+    const longTicketNumberTicket = { ...mockTicket, ticket_number: 'verylongticketid123456789' };
     
-    renderTicketRow(longIdTicket);
+    renderTicketRow(longTicketNumberTicket);
 
     expect(screen.getByText('verylong...')).toBeInTheDocument();
   });
 
-  it('should show full ID in tooltip', () => {
+  it('should show full ticket number in tooltip', () => {
     renderTicketRow();
 
-    const idButton = screen.getByText('12345678...');
-    expect(idButton).toHaveAttribute('title', '1234567890');
+    const ticketNumberButton = screen.getByText('12345678...');
+    expect(ticketNumberButton).toHaveAttribute('title', '1234567890');
   });
 }); 

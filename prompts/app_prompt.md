@@ -127,7 +127,7 @@ ticketflow/
 ## Ticket Data Structure
 
 ### Ticket Fields
-- `_id`: Unique identifier (auto-generated)
+- `ticket_number`: Unique ticket number (auto-generated)
 - `issue_title`: Brief description (max 100 characters)
 - `issue_description`: Detailed description (max 500 characters)
 - `status`: Current status ('Open', 'In-progress', 'Closed')
@@ -146,7 +146,7 @@ ticketflow/
 
 ```sql
 CREATE TABLE tickets (
-  _id TEXT PRIMARY KEY,
+  ticket_number TEXT PRIMARY KEY,
   issue_title TEXT NOT NULL,
   issue_description TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('Open', 'In-progress', 'Closed')),

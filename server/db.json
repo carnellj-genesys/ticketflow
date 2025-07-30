@@ -1,7 +1,7 @@
 {
   "ticket": [
     {
-      "_id": "1",
+      "ticket_number": "1",
       "issue_title": "Login page not loading",
       "issue_description": "The users are unable to access the login page. The page shows a blank screen with no error messages.",
       "status": "Open",
@@ -13,7 +13,7 @@
       "changed": "2025-06-19T20:52:01.823Z"
     },
     {
-      "_id": "2",
+      "ticket_number": "2",
       "issue_title": "Database connection timeout",
       "issue_description": "Application experiencing intermittent database connection timeouts during peak hours.",
       "status": "In-progress",
@@ -25,7 +25,7 @@
       "changed": "2024-01-15T09:15:00.000Z"
     },
     {
-      "_id": "1750610986170",
+      "ticket_number": "1750610986170",
       "issue_title": "I am  a dummy ",
       "issue_description": "I dint know how to aCTIVATW MY TRIGGFER",
       "email": "john.carnell@genesys.com",
@@ -37,7 +37,7 @@
       "changed": "2025-06-22T16:49:46.170Z"
     },
     {
-      "_id": "1750976010126",
+      "ticket_number": "1750976010126",
       "issue_title": "My app keeps crashing",
       "issue_description": "This is a new ticket",
       "email": "john.carnell@genesys.com",
@@ -49,7 +49,7 @@
       "changed": "2025-06-26T22:13:30.126Z"
     },
     {
-      "_id": "1751052612344",
+      "ticket_number": "1751052612344",
       "issue_title": "Login page not loading",
       "issue_description": "This is a not testing ",
       "email": "john.carnell@genesys.com",
@@ -61,7 +61,7 @@
       "changed": "2025-06-27T19:30:12.344Z"
     },
     {
-      "_id": "1751053471201",
+      "ticket_number": "1751053471201",
       "issue_title": "Mobile app crashes on startup",
       "issue_description": "The app is breaking",
       "email": "john.carnell@genesys.com",

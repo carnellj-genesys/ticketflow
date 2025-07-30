@@ -24,7 +24,7 @@ class DatabaseService {
         // Create table if it doesn't exist
         const createTableSQL = `
           CREATE TABLE IF NOT EXISTS tickets (
-            _id TEXT PRIMARY KEY,
+            ticket_number TEXT PRIMARY KEY,
             issue_title TEXT NOT NULL,
             issue_description TEXT NOT NULL,
             status TEXT NOT NULL,
@@ -66,7 +66,7 @@ class DatabaseService {
 
   getTicketById(id) {
     return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM tickets WHERE _id = ?';
+      const sql = 'SELECT * FROM tickets WHERE ticket_number = ?';
       this.db.get(sql, [id], (err, row) => {
         if (err) {
           console.error('❌ Error getting ticket:', err);
@@ -81,11 +81,11 @@ class DatabaseService {
   createTicket(ticket) {
     return new Promise((resolve, reject) => {
       const sql = `
-        INSERT INTO tickets (_id, issue_title, issue_description, status, priority, email, phone_number, notes, created, changed)
+        INSERT INTO tickets (ticket_number, issue_title, issue_description, status, priority, email, phone_number, notes, created, changed)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const params = [
-        ticket._id,
+        ticket.ticket_number,
         ticket.issue_title,
         ticket.issue_description,
         ticket.status,
@@ -102,7 +102,7 @@ class DatabaseService {
           console.error('❌ Error creating ticket:', err);
           reject(err);
         } else {
-          console.log(`✅ Created ticket with ID: ${ticket._id}`);
+          console.log(`✅ Created ticket with ticket number: ${ticket.ticket_number}`);
           resolve(true);
         }
       });
@@ -116,7 +116,7 @@ class DatabaseService {
       const values = [];
       
       Object.keys(ticketData).forEach(key => {
-        if (key !== '_id') {
+        if (key !== 'ticket_number') {
           fields.push(`${key} = ?`);
           values.push(ticketData[key]);
         }
@@ -128,7 +128,7 @@ class DatabaseService {
       const sql = `
         UPDATE tickets 
         SET ${fields.join(', ')}, changed = ?
-        WHERE _id = ?
+        WHERE ticket_number = ?
       `;
 
       this.db.run(sql, values, function(err) {
@@ -148,16 +148,16 @@ class DatabaseService {
 
   deleteTicket(id) {
     return new Promise((resolve, reject) => {
-      const sql = 'DELETE FROM tickets WHERE _id = ?';
+      const sql = 'DELETE FROM tickets WHERE ticket_number = ?';
       this.db.run(sql, [id], function(err) {
         if (err) {
           console.error('❌ Error deleting ticket:', err);
           reject(err);
         } else if (this.changes === 0) {
-          console.log(`❌ No ticket found with ID: ${id}`);
+          console.log(`❌ No ticket found with ticket number: ${id}`);
           resolve(false);
         } else {
-          console.log(`✅ Deleted ticket with ID: ${id}`);
+          console.log(`✅ Deleted ticket with ticket number: ${id}`);
           resolve(true);
         }
       });
@@ -203,7 +203,7 @@ class DatabaseService {
           await this.createTicket(ticket);
           migratedCount++;
         } catch (error) {
-          console.error(`❌ Error migrating ticket ${ticket._id}:`, error);
+          console.error(`❌ Error migrating ticket ${ticket.ticket_number}:`, error);
         }
       }
 
@@ -218,16 +218,16 @@ class DatabaseService {
 
       // Log sample migrated tickets
       const sampleTickets = (await this.getAllTickets()).slice(0, 3);
-      console.log('📋 Sample migrated tickets:');
-      sampleTickets.forEach(ticket => {
-        console.log(`  - ID: ${ticket._id}`);
-        console.log(`    Title: ${ticket.issue_title}`);
-        console.log(`    Status: ${ticket.status}`);
-        console.log(`    Priority: ${ticket.priority}`);
-        console.log(`    Notes: "${ticket.notes}"`);
-        console.log(`    Created: ${ticket.created}`);
-        console.log('');
-      });
+              console.log('📋 Sample migrated tickets:');
+        sampleTickets.forEach(ticket => {
+          console.log(`  - Ticket Number: ${ticket.ticket_number}`);
+          console.log(`    Title: ${ticket.issue_title}`);
+          console.log(`    Status: ${ticket.status}`);
+          console.log(`    Priority: ${ticket.priority}`);
+          console.log(`    Notes: "${ticket.notes}"`);
+          console.log(`    Created: ${ticket.created}`);
+          console.log('');
+        });
 
     } catch (error) {
       console.error('❌ Error during migration:', error);
@@ -243,7 +243,7 @@ class DatabaseService {
       if (tickets.length > 0) {
         console.log('📋 Database schema verification:');
         const sampleTicket = tickets[0];
-        const requiredFields = ['_id', 'issue_title', 'issue_description', 'status', 'priority', 'email', 'phone_number', 'notes', 'created', 'changed'];
+        const requiredFields = ['ticket_number', 'issue_title', 'issue_description', 'status', 'priority', 'email', 'phone_number', 'notes', 'created', 'changed'];
         
         requiredFields.forEach(field => {
           if (sampleTicket.hasOwnProperty(field)) {
@@ -255,7 +255,7 @@ class DatabaseService {
 
         console.log('📋 Sample tickets in database:');
         tickets.slice(0, 3).forEach(ticket => {
-          console.log(`  - ID: ${ticket._id}`);
+          console.log(`  - Ticket Number: ${ticket.ticket_number}`);
           console.log(`    Title: ${ticket.issue_title}`);
           console.log(`    Status: ${ticket.status}`);
           console.log(`    Priority: ${ticket.priority}`);

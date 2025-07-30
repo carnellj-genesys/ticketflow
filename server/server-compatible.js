@@ -35,11 +35,11 @@ const swaggerOptions = {
       schemas: {
         Ticket: {
           type: 'object',
-          required: ['_id', 'issue_description', 'priority', 'email', 'phone_number', 'created', 'changed'],
+          required: ['ticket_number', 'issue_description', 'priority', 'email', 'phone_number', 'created', 'changed'],
           properties: {
-            _id: {
+            ticket_number: {
               type: 'string',
-              description: 'Unique identifier for the ticket'
+              description: 'Unique ticket number for the ticket'
             },
             issue_title: {
               type: 'string',
@@ -346,7 +346,7 @@ app.post('/rest/ticket', async (req, res) => {
     }
     
     const newTicket = {
-      _id: Date.now().toString(),
+      ticket_number: Date.now().toString(),
       ...req.body,
       issue_title: issueTitle,
       status: status,
@@ -356,7 +356,7 @@ app.post('/rest/ticket', async (req, res) => {
     
     const success = await databaseService.createTicket(newTicket);
     if (success) {
-      console.log(`✅ POST /rest/ticket - Created ticket ${newTicket._id}`);
+      console.log(`✅ POST /rest/ticket - Created ticket ${newTicket.ticket_number}`);
       res.status(201).json(newTicket);
     } else {
       console.log(`❌ POST /rest/ticket - Failed to create ticket`);

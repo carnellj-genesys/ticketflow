@@ -15,7 +15,7 @@ class DatabaseService {
     // Create tickets table if it doesn't exist
     const createTable = `
       CREATE TABLE IF NOT EXISTS tickets (
-        _id TEXT PRIMARY KEY,
+        ticket_number TEXT PRIMARY KEY,
         issue_title TEXT NOT NULL,
         issue_description TEXT NOT NULL,
         status TEXT NOT NULL CHECK (status IN ('Open', 'In-progress', 'Closed')),
@@ -38,18 +38,18 @@ class DatabaseService {
   }
 
   getTicketById(id) {
-    const stmt = this.db.prepare('SELECT * FROM tickets WHERE _id = ?');
+    const stmt = this.db.prepare('SELECT * FROM tickets WHERE ticket_number = ?');
     return stmt.get(id);
   }
 
   createTicket(ticket) {
     const stmt = this.db.prepare(`
-      INSERT INTO tickets (_id, issue_title, issue_description, status, priority, email, phone_number, notes, created, changed)
+      INSERT INTO tickets (ticket_number, issue_title, issue_description, status, priority, email, phone_number, notes, created, changed)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     const result = stmt.run(
-      ticket._id,
+      ticket.ticket_number,
       ticket.issue_title,
       ticket.issue_description,
       ticket.status,
@@ -70,7 +70,7 @@ class DatabaseService {
     
     // Build dynamic update query based on provided fields
     Object.keys(ticketData).forEach(key => {
-      if (key !== '_id' && key !== 'created') { // Don't allow updating ID or created date
+      if (key !== 'ticket_number' && key !== 'created') { // Don't allow updating ticket_number or created date
         fields.push(`${key} = ?`);
         values.push(ticketData[key]);
       }
@@ -85,14 +85,14 @@ class DatabaseService {
     // Add ID for WHERE clause
     values.push(id);
     
-    const stmt = this.db.prepare(`UPDATE tickets SET ${fields.join(', ')} WHERE _id = ?`);
+    const stmt = this.db.prepare(`UPDATE tickets SET ${fields.join(', ')} WHERE ticket_number = ?`);
     const result = stmt.run(...values);
     
     return result.changes > 0;
   }
 
   deleteTicket(id) {
-    const stmt = this.db.prepare('DELETE FROM tickets WHERE _id = ?');
+    const stmt = this.db.prepare('DELETE FROM tickets WHERE ticket_number = ?');
     const result = stmt.run(id);
     return result.changes > 0;
   }
@@ -107,7 +107,7 @@ class DatabaseService {
     }
     
     // Check for required fields
-    const requiredFields = ['_id', 'issue_title', 'issue_description', 'status', 'priority', 'email', 'phone_number', 'notes', 'created', 'changed'];
+    const requiredFields = ['ticket_number', 'issue_title', 'issue_description', 'status', 'priority', 'email', 'phone_number', 'notes', 'created', 'changed'];
     const sampleTicket = tickets[0];
     
     console.log('📋 Database schema verification:');
@@ -120,7 +120,7 @@ class DatabaseService {
     // Show sample data
     console.log('📋 Sample tickets in database:');
     tickets.slice(0, 3).forEach(ticket => {
-      console.log(`  - ID: ${ticket._id}`);
+      console.log(`  - Ticket Number: ${ticket.ticket_number}`);
       console.log(`    Title: ${ticket.issue_title}`);
       console.log(`    Status: ${ticket.status}`);
       console.log(`    Priority: ${ticket.priority}`);
@@ -165,7 +165,7 @@ class DatabaseService {
       }
       
       const insertStmt = this.db.prepare(`
-        INSERT OR IGNORE INTO tickets (_id, issue_title, issue_description, status, priority, email, phone_number, notes, created, changed)
+        INSERT OR IGNORE INTO tickets (ticket_number, issue_title, issue_description, status, priority, email, phone_number, notes, created, changed)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       
@@ -174,7 +174,7 @@ class DatabaseService {
         for (const ticket of tickets) {
           try {
             const result = insertStmt.run(
-              ticket._id,
+              ticket.ticket_number,
               ticket.issue_title,
               ticket.issue_description,
               ticket.status,
@@ -189,7 +189,7 @@ class DatabaseService {
               migratedCount++;
             }
           } catch (error) {
-            console.error(`❌ Failed to migrate ticket ${ticket._id}:`, error.message);
+            console.error(`❌ Failed to migrate ticket ${ticket.ticket_number}:`, error.message);
           }
         }
       });
@@ -214,7 +214,7 @@ class DatabaseService {
       const sampleTickets = this.getAllTickets().slice(0, 3);
       console.log('📋 Sample migrated tickets:');
       sampleTickets.forEach(ticket => {
-        console.log(`  - ID: ${ticket._id}, Title: ${ticket.issue_title}, Notes: "${ticket.notes}"`);
+        console.log(`  - Ticket Number: ${ticket.ticket_number}, Title: ${ticket.issue_title}, Notes: "${ticket.notes}"`);
       });
       
     } catch (error) {

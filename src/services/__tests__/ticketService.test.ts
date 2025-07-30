@@ -23,7 +23,7 @@ vi.mock('../webhookService', () => ({
 
 describe('TicketService', () => {
   const mockTicket: Ticket = {
-    _id: '1',
+    ticket_number: '1',
     issue_title: 'Test Ticket',
     issue_description: 'Test Description',
     status: 'Open',

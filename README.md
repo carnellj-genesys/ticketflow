@@ -386,7 +386,7 @@ Retrieve all tickets from the database.
 ```json
 [
   {
-    "_id": "1751053471201",
+    "ticket_number": "1751053471201",
     "issue_title": "Mobile app crashes on startup",
     "issue_description": "The app is breaking",
     "status": "Open",
@@ -409,7 +409,7 @@ Retrieve a specific ticket by its ID.
 **Response (200):**
 ```json
 {
-  "_id": "1751053471201",
+  "ticket_number": "1751053471201",
   "issue_title": "Mobile app crashes on startup",
   "issue_description": "The app is breaking",
   "status": "Open",
@@ -448,7 +448,7 @@ Create a new support ticket.
 **Response (201):**
 ```json
 {
-  "_id": "1751053471201",
+  "ticket_number": "1751053471201",
   "issue_title": "Login page not loading",
   "issue_description": "Users cannot access the login page",
   "status": "Open",
@@ -478,7 +478,7 @@ Update an existing ticket by ID.
 **Response (200):**
 ```json
 {
-  "_id": "1751053471201",
+  "ticket_number": "1751053471201",
   "issue_title": "Login page not loading",
   "issue_description": "Users cannot access the login page",
   "status": "In-progress",
@@ -617,7 +617,7 @@ curl -X DELETE http://localhost:3001/rest/ticket/1751053471201
 
 ```typescript
 interface Ticket {
-  _id: string;
+  ticket_number: string;
   issue_title: string;  // Auto-generated from description if not provided
   issue_description: string;
   status: 'Open' | 'In-progress' | 'Closed';
@@ -634,7 +634,7 @@ interface Ticket {
 
 ```sql
 CREATE TABLE tickets (
-  _id TEXT PRIMARY KEY,
+  ticket_number TEXT PRIMARY KEY,
   issue_title TEXT NOT NULL,
   issue_description TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('Open', 'In-progress', 'Closed')),

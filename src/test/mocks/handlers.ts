@@ -3,7 +3,7 @@ import type { Ticket } from '../../types/ticket';
 
 const mockTickets: Ticket[] = [
   {
-    _id: '1',
+    ticket_number: '1',
     issue_title: 'Login page not loading',
     issue_description: 'Users are unable to access the login page. The page shows a blank screen with no error messages.',
     status: 'Open',
@@ -15,7 +15,7 @@ const mockTickets: Ticket[] = [
     changed: '2024-01-15T10:30:00.000Z'
   },
   {
-    _id: '2',
+    ticket_number: '2',
     issue_title: 'Database connection timeout',
     issue_description: 'Application experiencing intermittent database connection timeouts during peak hours.',
     status: 'In-progress',
@@ -36,7 +36,7 @@ export const handlers = [
 
   // GET ticket by ID
   http.get('/rest/ticket/:id', ({ params }) => {
-    const ticket = mockTickets.find(t => t._id === params.id);
+    const ticket = mockTickets.find(t => t.ticket_number === params.id);
     if (ticket) {
       return HttpResponse.json(ticket);
     }
@@ -47,7 +47,7 @@ export const handlers = [
   http.post('/rest/ticket', async ({ request }) => {
     const newTicket = await request.json() as Partial<Ticket>;
     const ticket: Ticket = {
-      _id: Date.now().toString(),
+      ticket_number: Date.now().toString(),
       issue_title: newTicket.issue_title || '',
       issue_description: newTicket.issue_description || '',
       status: newTicket.status || 'Open',
@@ -65,7 +65,7 @@ export const handlers = [
   // PUT update ticket
   http.put('/rest/ticket/:id', async ({ params, request }) => {
     const updates = await request.json() as Partial<Ticket>;
-    const index = mockTickets.findIndex(t => t._id === params.id);
+    const index = mockTickets.findIndex(t => t.ticket_number === params.id);
     if (index !== -1) {
       mockTickets[index] = {
         ...mockTickets[index],
@@ -79,7 +79,7 @@ export const handlers = [
 
   // DELETE ticket
   http.delete('/rest/ticket/:id', ({ params }) => {
-    const index = mockTickets.findIndex(t => t._id === params.id);
+    const index = mockTickets.findIndex(t => t.ticket_number === params.id);
     if (index !== -1) {
       mockTickets.splice(index, 1);
       return new HttpResponse(null, { status: 204 });

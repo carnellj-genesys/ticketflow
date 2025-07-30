@@ -1,5 +1,5 @@
 export interface Ticket {
-  _id: string;                    // Unique identifier (auto-generated)
+  ticket_number: string;          // Unique ticket number (auto-generated)
   issue_title: string;            // Max 100 characters
   issue_description: string;      // Max 500 characters
   status: 'Open' | 'In-progress' | 'Closed';

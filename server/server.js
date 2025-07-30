@@ -45,11 +45,11 @@ const swaggerOptions = {
       schemas: {
         Ticket: {
           type: 'object',
-          required: ['_id', 'issue_description', 'priority', 'email', 'phone_number', 'created', 'changed'],
+          required: ['ticket_number', 'issue_description', 'priority', 'email', 'phone_number', 'created', 'changed'],
           properties: {
-            _id: {
+            ticket_number: {
               type: 'string',
-              description: 'Unique identifier for the ticket'
+              description: 'Unique ticket number for the ticket'
             },
             issue_title: {
               type: 'string',
@@ -352,7 +352,7 @@ app.post('/rest/ticket', async (req, res) => {
     }
     
     const newTicket = {
-      _id: Date.now().toString(),
+      ticket_number: Date.now().toString(),
       ...req.body,
       issue_title: issueTitle,
       status: status,
@@ -362,13 +362,13 @@ app.post('/rest/ticket', async (req, res) => {
     
     const success = databaseService.createTicket(newTicket);
     if (success) {
-      console.log(`✅ POST /rest/ticket - Created ticket ${newTicket._id}`);
+      console.log(`✅ POST /rest/ticket - Created ticket ${newTicket.ticket_number}`);
       
       // Send webhook notification
       try {
         await webhookService.notifyTicketCreated(newTicket);
       } catch (webhookError) {
-        console.warn(`⚠️ Webhook notification failed for ticket ${newTicket._id}:`, webhookError.message);
+        console.warn(`⚠️ Webhook notification failed for ticket ${newTicket.ticket_number}:`, webhookError.message);
       }
       
       res.status(201).json(newTicket);
@@ -568,6 +568,11 @@ app.get('/echo', (req, res) => {
  *                   description: Whether webhooks are enabled
  */
 app.get('/rest/webhook/status', (req, res) => {
+  // Set CORS headers explicitly for this endpoint
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, x-apikey, CORS-API-Key, Authorization, host_header');
+  
   try {
     res.json({ enabled: webhookService.isEnabled() });
   } catch (error) {
@@ -606,6 +611,11 @@ app.get('/rest/webhook/status', (req, res) => {
  *                   description: Current webhook status
  */
 app.put('/rest/webhook/status', (req, res) => {
+  // Set CORS headers explicitly for this endpoint
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, x-apikey, CORS-API-Key, Authorization, host_header');
+  
   try {
     const { enabled } = req.body;
     if (typeof enabled !== 'boolean') {
@@ -619,6 +629,14 @@ app.put('/rest/webhook/status', (req, res) => {
     console.error('❌ Error updating webhook status:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Handle OPTIONS requests for webhook endpoints
+app.options('/rest/webhook/status', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, x-apikey, CORS-API-Key, Authorization, host_header');
+  res.status(200).end();
 });
 
 // Error handling

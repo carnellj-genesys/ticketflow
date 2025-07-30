@@ -59,7 +59,7 @@ function App() {
     
     try {
       setFormLoading(true);
-      await ticketService.updateTicket(selectedTicket._id, ticketData);
+      await ticketService.updateTicket(selectedTicket.ticket_number, ticketData);
       setShowEditModal(false);
       setSelectedTicket(null);
       await fetchTickets(); // Refresh the list
@@ -88,9 +88,9 @@ function App() {
     }
   };
 
-  const openEditModal = async (id: string) => {
+  const openEditModal = async (ticketNumber: string) => {
     try {
-      const ticket = await ticketService.getTicketById(id);
+      const ticket = await ticketService.getTicketById(ticketNumber);
       setSelectedTicket(ticket);
       setShowEditModal(true);
     } catch (err) {
@@ -99,8 +99,8 @@ function App() {
     }
   };
 
-  const openDeleteModal = (id: string) => {
-    setTicketToDelete(id);
+  const openDeleteModal = (ticketNumber: string) => {
+    setTicketToDelete(ticketNumber);
     setShowDeleteModal(true);
   };
 
@@ -172,7 +172,7 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">Edit Ticket #{selectedTicket._id}</h3>
+              <h3 className="modal-title">Edit Ticket #{selectedTicket.ticket_number}</h3>
               <button 
                 className="modal-close" 
                 onClick={() => setShowEditModal(false)}

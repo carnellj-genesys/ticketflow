@@ -13,23 +13,23 @@ class WebhookService {
     console.log('📤 Webhook Enabled:', this.config.enabled);
   }
 
-  logWebhookRequest(action, ticketId, url) {
-    console.group(`🔗 Backend Webhook Request: ${action} for ticket ${ticketId}`);
+  logWebhookRequest(action, ticketNumber, url) {
+    console.group(`🔗 Backend Webhook Request: ${action} for ticket ${ticketNumber}`);
     console.log('📤 Webhook URL:', url);
     console.log('📤 Webhook Enabled:', this.config.enabled);
     console.groupEnd();
   }
 
-  logWebhookSuccess(action, ticketId, response) {
-    console.group(`✅ Backend Webhook Success: ${action} for ticket ${ticketId}`);
+  logWebhookSuccess(action, ticketNumber, response) {
+    console.group(`✅ Backend Webhook Success: ${action} for ticket ${ticketNumber}`);
     console.log('📥 Response Status:', response.status);
     console.log('📥 Response Headers:', response.headers);
     console.log('📥 Response Data:', response.data);
     console.groupEnd();
   }
 
-  logWebhookError(action, ticketId, error) {
-    console.group(`❌ Backend Webhook Error: ${action} for ticket ${ticketId}`);
+  logWebhookError(action, ticketNumber, error) {
+    console.group(`❌ Backend Webhook Error: ${action} for ticket ${ticketNumber}`);
     console.error('📥 Error Details:', error);
     console.error('📥 Error Message:', error.message);
     if (error.response) {
@@ -47,7 +47,7 @@ class WebhookService {
 
   createPayload(ticket, action) {
     return {
-      id: ticket._id,
+      ticket_number: ticket.ticket_number,
       action: action,
       issue_title: ticket.issue_title,
       issue_description: ticket.issue_description,
@@ -63,11 +63,11 @@ class WebhookService {
 
   async sendWebhook(payload, action) {
     if (!this.config.enabled) {
-      console.log(`🔗 Backend Webhook disabled, skipping ${action} for ticket ${payload.id}`);
+      console.log(`🔗 Backend Webhook disabled, skipping ${action} for ticket ${payload.ticket_number}`);
       return;
     }
 
-    this.logWebhookRequest(action, payload.id, this.config.url);
+    this.logWebhookRequest(action, payload.ticket_number, this.config.url);
 
     try {
       const response = await axios.post(this.config.url, payload, {
@@ -77,11 +77,11 @@ class WebhookService {
         }
       });
 
-      this.logWebhookSuccess(action, payload.id, response);
+      this.logWebhookSuccess(action, payload.ticket_number, response);
     } catch (error) {
-      this.logWebhookError(action, payload.id, error);
+      this.logWebhookError(action, payload.ticket_number, error);
       // Don't throw error - webhook failures shouldn't break the main flow
-      console.warn(`⚠️ Webhook notification failed for ${action} ticket ${payload.id}, but continuing...`);
+      console.warn(`⚠️ Webhook notification failed for ${action} ticket ${payload.ticket_number}, but continuing...`);
     }
   }
 

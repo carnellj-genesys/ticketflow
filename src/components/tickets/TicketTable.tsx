@@ -92,7 +92,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           <thead>
             <tr>
               <th style={{ width: '80px', minWidth: '80px' }}>
-                <SortableHeader field="_id">ID</SortableHeader>
+                <SortableHeader field="ticket_number">Ticket #</SortableHeader>
               </th>
               <th style={{ width: '200px', minWidth: '200px' }}>
                 <SortableHeader field="issue_title">Title</SortableHeader>
@@ -121,7 +121,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           <tbody>
             {paginatedTickets.map((ticket, index) => (
               <TicketRow
-                key={`${ticket._id}-${index}`}
+                key={`${ticket.ticket_number}-${index}`}
                 ticket={ticket}
                 onEdit={onEdit}
                 onDelete={onDelete}
