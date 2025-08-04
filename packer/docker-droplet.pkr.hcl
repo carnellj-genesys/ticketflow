@@ -360,6 +360,8 @@ EOF
 Description=TicketFlow Application
 Requires=docker.service
 After=docker.service
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=oneshot
@@ -367,7 +369,20 @@ RemainAfterExit=yes
 WorkingDirectory=/opt/ticketflow
 ExecStart=/usr/bin/docker-compose up -d
 ExecStop=/usr/bin/docker-compose down
+ExecReload=/usr/bin/docker-compose down && /usr/bin/docker-compose up -d
 TimeoutStartSec=0
+
+# Restart policy
+Restart=on-failure
+RestartSec=30
+
+# Environment variables
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=DOCKER_COMPOSE_IGNORE_ORPHANS=1
+
+# Security settings
+User=root
+Group=root
 
 [Install]
 WantedBy=multi-user.target
@@ -378,12 +393,100 @@ EOF
   provisioner "file" {
     content = <<-EOF
 #!/bin/bash
+
+# TicketFlow Startup Script
+# This script starts the TicketFlow application
+
+set -e
+
+echo "Starting TicketFlow application..."
+
+# Change to application directory
 cd /opt/ticketflow
-docker-compose down
-docker-compose pull
+
+# Stop any existing containers
+echo "Stopping existing containers..."
+docker-compose down || true
+
+# Pull latest images
+echo "Pulling latest images..."
+docker-compose pull || echo "Warning: Failed to pull images, using local images"
+
+# Start the application
+echo "Starting application..."
 docker-compose up -d
+
+# Wait for containers to be ready
+echo "Waiting for containers to be ready..."
+sleep 10
+
+# Check status
+echo "Checking container status..."
+docker-compose ps
+
+echo "TicketFlow application started successfully!"
+echo "Access the application at: http://localhost:8080"
 EOF
     destination = "/opt/ticketflow/start.sh"
+  }
+
+  provisioner "file" {
+    content = <<-EOF
+#!/bin/bash
+
+# TicketFlow Stop Script
+# This script stops the TicketFlow application
+
+set -e
+
+echo "Stopping TicketFlow application..."
+
+# Change to application directory
+cd /opt/ticketflow
+
+# Stop the application
+echo "Stopping containers..."
+docker-compose down
+
+echo "TicketFlow application stopped successfully!"
+EOF
+    destination = "/opt/ticketflow/stop.sh"
+  }
+
+  provisioner "file" {
+    content = <<-EOF
+#!/bin/bash
+
+# TicketFlow Restart Script
+# This script restarts the TicketFlow application
+
+set -e
+
+echo "Restarting TicketFlow application..."
+
+# Change to application directory
+cd /opt/ticketflow
+
+# Stop the application
+echo "Stopping containers..."
+docker-compose down
+
+# Start the application
+echo "Starting containers..."
+docker-compose up -d
+
+# Wait for containers to be ready
+echo "Waiting for containers to be ready..."
+sleep 10
+
+# Check status
+echo "Checking container status..."
+docker-compose ps
+
+echo "TicketFlow application restarted successfully!"
+echo "Access the application at: http://localhost:8080"
+EOF
+    destination = "/opt/ticketflow/restart.sh"
   }
 
   provisioner "shell" {
@@ -396,6 +499,8 @@ EOF
       "cat /opt/ticketflow/config/nginx-proxy.conf || echo 'nginx-proxy.conf not found'",
       "cat /opt/ticketflow/docker-compose.yml || echo 'docker-compose.yml not found'",
       "cat /opt/ticketflow/start.sh || echo 'start.sh not found'",
+      "cat /opt/ticketflow/stop.sh || echo 'stop.sh not found'",
+      "cat /opt/ticketflow/restart.sh || echo 'restart.sh not found'",
       "cat /etc/systemd/system/ticketflow.service || echo 'ticketflow.service not found'"
     ]
   }
@@ -408,7 +513,11 @@ EOF
       "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
       "if [ -f /opt/ticketflow/config/nginx-proxy.conf ]; then chmod 644 /opt/ticketflow/config/nginx-proxy.conf; else echo 'nginx-proxy.conf not found'; fi",
       "if [ -f /opt/ticketflow/start.sh ]; then chmod +x /opt/ticketflow/start.sh; else echo 'start.sh not found'; fi",
+      "if [ -f /opt/ticketflow/stop.sh ]; then chmod +x /opt/ticketflow/stop.sh; else echo 'stop.sh not found'; fi",
+      "if [ -f /opt/ticketflow/restart.sh ]; then chmod +x /opt/ticketflow/restart.sh; else echo 'restart.sh not found'; fi",
       "if [ -f /opt/ticketflow/start.sh ]; then chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/start.sh; else echo 'start.sh not found'; fi",
+      "if [ -f /opt/ticketflow/stop.sh ]; then chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/stop.sh; else echo 'stop.sh not found'; fi",
+      "if [ -f /opt/ticketflow/restart.sh ]; then chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/restart.sh; else echo 'restart.sh not found'; fi",
       
       # Test Docker Compose configuration
       "echo 'Testing Docker Compose configuration...'",
@@ -420,7 +529,67 @@ EOF
       
       # Open additional firewall ports
       "ufw allow 3001/tcp",
-      "ufw allow 8080/tcp"
+      "ufw allow 8080/tcp",
+      
+      # Create a README file with usage instructions
+      "echo 'Creating README with usage instructions...'",
+      "cat > /opt/ticketflow/README.md << 'EOF'",
+      "# TicketFlow Application",
+      "",
+      "This directory contains the TicketFlow application configuration and scripts.",
+      "",
+      "## Quick Start",
+      "",
+      "The application is configured to start automatically on system boot.",
+      "",
+      "## Manual Control",
+      "",
+      "### Start the application:",
+      "sudo systemctl start ticketflow",
+      "",
+      "### Stop the application:",
+      "sudo systemctl stop ticketflow",
+      "",
+      "### Restart the application:",
+      "sudo systemctl restart ticketflow",
+      "",
+      "### Check status:",
+      "sudo systemctl status ticketflow",
+      "",
+      "### View logs:",
+      "sudo journalctl -u ticketflow -f",
+      "",
+      "## Scripts",
+      "",
+      "- \`./start.sh\` - Start the application manually",
+      "- \`./stop.sh\` - Stop the application manually",
+      "- \`./restart.sh\` - Restart the application manually",
+      "",
+      "## Access URLs",
+      "",
+      "- Frontend: http://localhost:8080",
+      "- API: http://localhost:8080/rest/ticket",
+      "- Health Check: http://localhost:8080/echo",
+      "",
+      "## Docker Compose",
+      "",
+      "The application uses Docker Compose for orchestration.",
+      "",
+      "### View logs:",
+      "docker-compose logs -f",
+      "",
+      "### View specific service logs:",
+      "docker-compose logs -f ticketflow-backend",
+      "docker-compose logs -f ticketflow-frontend",
+      "docker-compose logs -f nginx-proxy",
+      "EOF",
+      
+      # Final verification
+      "echo 'Final verification...'",
+      "systemctl is-enabled ticketflow.service && echo 'Service is enabled' || echo 'Service is not enabled'",
+      "echo 'TicketFlow application setup completed successfully!'",
+      "echo 'The application will start automatically on system boot.'",
+      "echo 'Access the application at: http://localhost:8080'"
     ]
   }
 }
