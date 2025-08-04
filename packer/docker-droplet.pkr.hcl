@@ -129,7 +129,9 @@ build {
     inline = [
       # Create application directory structure
       "mkdir -p /opt/ticketflow/{config,logs}",
-      "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow"
+      "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
+      "ls -la /opt/ticketflow/",
+      "ls -la /opt/ticketflow/config/ || echo 'Config directory not found'"
     ]
   }
 
@@ -294,15 +296,29 @@ EOF
   provisioner "shell" {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
     inline = [
-      # Set proper permissions
+      # Verify files were created properly
+      "echo 'Verifying file creation...'",
+      "ls -la /opt/ticketflow/",
+      "ls -la /opt/ticketflow/config/ || echo 'Config directory not found'",
+      "cat /opt/ticketflow/config/nginx-proxy.conf || echo 'nginx-proxy.conf not found'",
+      "cat /opt/ticketflow/docker-compose.yml || echo 'docker-compose.yml not found'",
+      "cat /opt/ticketflow/start.sh || echo 'start.sh not found'",
+      "cat /etc/systemd/system/ticketflow.service || echo 'ticketflow.service not found'"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      # Set proper permissions with error handling
+      "echo 'Setting file permissions...'",
       "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
-      "chmod 644 /opt/ticketflow/config/nginx-proxy.conf",
-      "chmod +x /opt/ticketflow/start.sh",
-      "chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/start.sh",
+      "if [ -f /opt/ticketflow/config/nginx-proxy.conf ]; then chmod 644 /opt/ticketflow/config/nginx-proxy.conf; else echo 'nginx-proxy.conf not found'; fi",
+      "if [ -f /opt/ticketflow/start.sh ]; then chmod +x /opt/ticketflow/start.sh; else echo 'start.sh not found'; fi",
+      "if [ -f /opt/ticketflow/start.sh ]; then chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/start.sh; else echo 'start.sh not found'; fi",
       
       # Enable and start the service
-      "systemctl daemon-reload",
-      "systemctl enable ticketflow.service",
+      "if [ -f /etc/systemd/system/ticketflow.service ]; then systemctl daemon-reload; systemctl enable ticketflow.service; else echo 'ticketflow.service not found'; fi",
       
       # Open additional firewall ports
       "ufw allow 3001/tcp",
