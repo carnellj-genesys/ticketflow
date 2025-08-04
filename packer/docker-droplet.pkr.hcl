@@ -60,8 +60,11 @@ source "digitalocean" "docker_droplet" {
   snapshot_name = "${var.droplet_name}-snapshot-${formatdate("YYYYMMDD-hhmm", timestamp())}"
   ssh_key_id    = var.ssh_key_id
   ssh_private_key_file = "~/.ssh/id_rsa_do"
-  ssh_timeout   = "10m"
+  ssh_timeout   = "15m"
   ssh_handshake_attempts = "100"
+  droplet_agent = false
+  monitoring    = false
+  ipv6          = false
 }
 
 build {
@@ -71,25 +74,82 @@ build {
   provisioner "shell" {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
     inline = [
-      # Wait for and clear any stuck apt/dpkg locks
+      # Initial system setup and lock handling
+      "echo '=== Initial System Setup ==='",
+      "echo 'Waiting for system to be ready...'",
+      "sleep 30",
+      
+      # Kill any existing package manager processes
+      "echo 'Killing any existing package manager processes...'",
+      "pkill -f apt-get || true",
+      "pkill -f apt || true",
+      "pkill -f dpkg || true",
+      
+      # Wait for processes to terminate
+      "sleep 15",
+      
+      # Clear any existing locks
+      "echo 'Clearing any existing locks...'",
+      "rm -f /var/lib/apt/lists/lock",
+      "rm -f /var/lib/dpkg/lock",
+      "rm -f /var/lib/dpkg/lock-frontend",
+      "rm -f /var/cache/apt/archives/lock",
+      "rm -rf /var/lib/apt/lists/partial/*",
+      
+      # Configure dpkg
+      "dpkg --configure -a || true",
+      
+      # Update package lists
+      "echo 'Updating package lists...'",
+      "apt-get update -y || true",
+      
+      # Install basic utilities
+      "echo 'Installing basic utilities...'",
+      "apt-get install -y curl wget gnupg lsb-release || true"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      # Comprehensive lock handling
+      "echo '=== Comprehensive APT Lock Handling ==='",
+      "echo 'Killing any existing apt processes...'",
+      "pkill -f apt-get || true",
+      "pkill -f apt || true",
+      "pkill -f dpkg || true",
+      
+      # Wait for processes to terminate
+      "echo 'Waiting for processes to terminate...'",
+      "sleep 10",
+      
+      # Check and wait for locks
       "echo 'Checking for existing apt locks...'",
       "while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do echo 'Waiting for apt lock...'; sleep 5; done",
       "while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do echo 'Waiting for dpkg lock...'; sleep 5; done",
       "while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo 'Waiting for dpkg frontend lock...'; sleep 5; done",
+      "while fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do echo 'Waiting for apt archives lock...'; sleep 5; done",
       
       # Force clear any stuck locks
+      "echo 'Clearing any stuck locks...'",
       "rm -f /var/lib/apt/lists/lock",
       "rm -f /var/lib/dpkg/lock",
       "rm -f /var/lib/dpkg/lock-frontend",
-      "dpkg --configure -a",
+      "rm -f /var/cache/apt/archives/lock",
+      "rm -f /var/lib/apt/lists/partial/*",
       
-              # Disable command-not-found to prevent database update errors
-        "apt-get remove -y --purge command-not-found || true",
-        "rm -f /etc/apt/apt.conf.d/*command-not-found*",
-        
-        # Clean apt cache and update
-        "apt-get clean",
-        "rm -rf /var/lib/apt/lists/*",
+      # Configure dpkg
+      "dpkg --configure -a || true",
+      
+      # Disable command-not-found to prevent database update errors
+      "apt-get remove -y --purge command-not-found || true",
+      "rm -f /etc/apt/apt.conf.d/*command-not-found*",
+      
+      # Clean apt cache and update
+      "echo 'Cleaning apt cache...'",
+      "apt-get clean",
+      "rm -rf /var/lib/apt/lists/*",
+      "echo 'Updating apt lists...'",
       "apt-get update -y",
       
       # Install Docker dependencies
