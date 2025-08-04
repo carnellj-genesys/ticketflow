@@ -72,29 +72,54 @@ build {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
     inline = [
       # Wait for and clear any stuck apt/dpkg locks
-      "for i in {1..30}; do if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; then break; fi; echo 'Waiting for dpkg lock release...'; sleep 2; done",
-      "if fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; then echo 'Force clearing stuck lock...'; kill -9 $(fuser /var/lib/dpkg/lock-frontend 2>/dev/null) || true; rm -f /var/lib/dpkg/lock-frontend; dpkg --configure -a; fi",
+      "echo 'Checking for existing apt locks...'",
+      "while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do echo 'Waiting for apt lock...'; sleep 5; done",
+      "while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do echo 'Waiting for dpkg lock...'; sleep 5; done",
+      "while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo 'Waiting for dpkg frontend lock...'; sleep 5; done",
+      
+      # Force clear any stuck locks
+      "rm -f /var/lib/apt/lists/lock",
+      "rm -f /var/lib/dpkg/lock",
+      "rm -f /var/lib/dpkg/lock-frontend",
+      "dpkg --configure -a",
+      
       # Disable command-not-found to prevent database update errors
       "apt-get remove -y --purge command-not-found || true",
       "rm -f /etc/apt/apt.conf.d/*command-not-found*",
-      # Clean apt cache to avoid stale lists
+      
+      # Clean apt cache and update
       "apt-get clean",
       "rm -rf /var/lib/apt/lists/*",
       "apt-get update -y",
-      # Skip system upgrade to save time - just install Docker
+      
+      # Install Docker dependencies
       "apt-get install -y apt-transport-https ca-certificates curl gnupg",
+      
+      # Add Docker repository
       "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
       "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" > /etc/apt/sources.list.d/docker.list",
+      
+      # Update and install Docker
       "apt-get update -y",
       "apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin",
+      
+      # Configure Docker
       "systemctl enable --now docker",
       "usermod -aG docker ${var.ssh_username}",
       "mkdir -p /etc/docker",
       "echo '{\"log-driver\":\"json-file\",\"log-opts\":{\"max-size\":\"10m\",\"max-file\":\"3\"}}' > /etc/docker/daemon.json",
       "systemctl restart docker",
+      
+      # Configure firewall
       "ufw allow ssh && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable",
+      
+      # Create application directory
       "mkdir -p /opt/ticketflow && chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
+      
+      # Clean up
       "apt-get autoremove -y && apt-get autoclean",
+      
+      # Test Docker
       "docker run --rm hello-world"
     ]
   }
