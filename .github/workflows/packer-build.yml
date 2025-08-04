@@ -52,18 +52,36 @@ jobs:
         
     - name: Generate SSH Key
       run: |
+        # Create .ssh directory if it doesn't exist
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        
+        # Generate SSH key
         ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_do -N "" -C "packer@github-actions"
+        
+        # Verify the key was created
+        ls -la ~/.ssh/
         echo "SSH key generated successfully"
+        
+        # Show key fingerprint
+        ssh-keygen -lf ~/.ssh/id_rsa_do
         
     - name: Add SSH Key to DigitalOcean
       run: |
         # Get the public key content
         PUBLIC_KEY=$(cat ~/.ssh/id_rsa_do.pub)
+        echo "Public key generated: ${PUBLIC_KEY:0:50}..."
+        
+        # Check if doctl is working
+        echo "Testing DigitalOcean API connection..."
+        doctl account get
         
         # Add the SSH key to DigitalOcean
+        echo "Adding SSH key to DigitalOcean..."
         doctl compute ssh-key create ticketflow-packer-key --public-key "$PUBLIC_KEY"
         
         # Get the key ID and set it as output
+        echo "Retrieving SSH key ID..."
         KEY_ID=$(doctl compute ssh-key list --format ID,Name --no-header | grep ticketflow-packer-key | awk '{print $1}')
         echo "SSH_KEY_ID=$KEY_ID" >> $GITHUB_ENV
         echo "SSH key added to DigitalOcean with ID: $KEY_ID"
@@ -71,18 +89,52 @@ jobs:
     - name: Run Packer Build
       env:
         DOCTL_API_KEY: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        SSH_KEY_ID: ${{ env.SSH_KEY_ID }}
       run: |
+        echo "Starting Packer build..."
+        echo "SSH Key ID: $SSH_KEY_ID"
+        echo "DigitalOcean Token: ${DOCTL_API_KEY:0:10}..."
+        
         cd packer
+        echo "Current directory: $(pwd)"
+        echo "Packer files: $(ls -la)"
+        
+        # Validate Packer configuration
+        packer validate docker-droplet.pkr.hcl
+        
+        # Run Packer build
         packer build docker-droplet.pkr.hcl
         
     - name: Cleanup SSH Key
       if: always()
       run: |
+        echo "Cleaning up SSH key..."
         # Remove the SSH key from DigitalOcean
         KEY_ID=$(doctl compute ssh-key list --format ID,Name --no-header | grep ticketflow-packer-key | awk '{print $1}')
         if [ ! -z "$KEY_ID" ]; then
+          echo "Removing SSH key with ID: $KEY_ID"
           doctl compute ssh-key delete $KEY_ID --force
           echo "SSH key cleaned up from DigitalOcean"
+        else
+          echo "No SSH key found to clean up"
+        fi
+        
+    - name: Verify SSH Key Files
+      if: always()
+      run: |
+        echo "Checking SSH key files..."
+        ls -la ~/.ssh/ || echo "~/.ssh directory not found"
+        ls -la ~/.ssh/id_rsa_do* || echo "SSH key files not found"
+        
+        # Create backup copies in workspace for artifact upload
+        if [ -f ~/.ssh/id_rsa_do ]; then
+          cp ~/.ssh/id_rsa_do ./ssh_key_private
+          cp ~/.ssh/id_rsa_do.pub ./ssh_key_public
+          echo "SSH keys backed up to workspace"
+        else
+          echo "SSH key files not found, creating dummy files for debugging"
+          echo "SSH key not found" > ./ssh_key_private
+          echo "SSH key not found" > ./ssh_key_public
         fi
         
     - name: Upload SSH Key as Artifact
@@ -90,5 +142,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ssh-keys
-        path: ~/.ssh/id_rsa_do*
+        path: |
+          ~/.ssh/id_rsa_do
+          ~/.ssh/id_rsa_do.pub
+          ./ssh_key_private
+          ./ssh_key_public
         retention-days: 1 
