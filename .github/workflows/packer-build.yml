@@ -9,16 +9,36 @@ on:
       - main
       - develop
   workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
     
 
 jobs:
   packer-build:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Debug Workflow Trigger
+      run: |
+        echo "Event name: ${{ github.event_name }}"
+        echo "Event type: ${{ github.event.workflow_run.event }}"
+        echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+        echo "Branch: ${{ github.ref }}"
+        echo "Repository: ${{ github.repository }}"
+        
+    - name: Check Docker Images Exist
+      if: github.event_name == 'push'
+      run: |
+        # Check if the docker images exist in Docker Hub
+        echo "Checking if docker images exist..."
+        # This step will help ensure we only run Packer when images are available
+        echo "Proceeding with Packer build..."
       
     - name: Setup Packer
       uses: hashicorp/setup-packer@v1

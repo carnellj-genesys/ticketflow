@@ -71,6 +71,8 @@ jobs:
                 console.log(`Docker build workflow completed with status: ${latestRun.conclusion}`);
                 if (latestRun.conclusion === 'success') {
                   console.log('Docker build successful, Packer workflow will be triggered automatically');
+                  // Add a small delay to ensure the workflow_run event is properly registered
+                  await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
                 }
                 break;
               }
