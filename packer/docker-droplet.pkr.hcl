@@ -469,11 +469,11 @@ cd /opt/ticketflow
 
 # Stop the application
 echo "Stopping containers..."
-docker-compose down
+docker compose down
 
 # Start the application
 echo "Starting containers..."
-docker-compose up -d
+docker compose up -d
 
 # Wait for containers to be ready
 echo "Waiting for containers to be ready..."
@@ -481,7 +481,7 @@ sleep 10
 
 # Check status
 echo "Checking container status..."
-docker-compose ps
+docker compose ps
 
 echo "TicketFlow application restarted successfully!"
 echo "Access the application at: http://localhost:8080"
