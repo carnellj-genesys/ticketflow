@@ -51,4 +51,177 @@ build {
       "docker run --rm hello-world"
     ]
   }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      # Create application directory structure
+      "mkdir -p /opt/ticketflow/{config,logs}",
+      "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
+      
+      # Create docker-compose.yml
+      "cat > /opt/ticketflow/docker-compose.yml << 'EOF'
+services:
+  ticketflow-backend:
+    image: johncarnell/ticketflow-backend:latest
+    container_name: ticketflow-backend
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - VITE_WEBHOOK_ENABLED=false
+      - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/9ae130307f25ce9d294f6891f38d04d36f44638f1e3cc59f85fcf0eef8bdcb5907a9434291c69c93ccabb6f598ba7fb4/events
+      - VITE_WEBHOOK_TIMEOUT=5000
+    networks:
+      - ticketflow-network
+    volumes:
+      - /opt/ticketflow/logs:/app/logs
+
+  ticketflow-frontend:
+    image: johncarnell/ticketflow-frontend:latest
+    container_name: ticketflow-frontend
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=http://ticketflow-backend:3001/rest
+    networks:
+      - ticketflow-network
+    depends_on:
+      - ticketflow-backend
+
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: ticketflow-nginx-proxy
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    volumes:
+      - /opt/ticketflow/config/nginx-proxy.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - ticketflow-network
+    depends_on:
+      - ticketflow-backend
+      - ticketflow-frontend
+
+networks:
+  ticketflow-network:
+    driver: bridge
+EOF",
+      
+      # Create nginx configuration
+      "cat > /opt/ticketflow/config/nginx-proxy.conf << 'EOF'
+server {
+    listen 8080;
+    server_name localhost;
+    
+    # API requests to backend
+    location /rest/ {
+        proxy_pass http://ticketflow-backend:3001;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Port \$server_port;
+        
+        # Handle CORS
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE, OPTIONS';
+        add_header Access-Control-Allow-Headers 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-apikey,CORS-API-Key';
+        
+        # Handle preflight requests
+        if (\$request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin *;
+            add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE, OPTIONS';
+            add_header Access-Control-Allow-Headers 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-apikey,CORS-API-Key';
+            add_header Access-Control-Max-Age 1728000;
+            add_header Content-Type 'text/plain; charset=utf-8';
+            add_header Content-Length 0;
+            return 204;
+        }
+    }
+    
+    # API documentation
+    location /api-docs {
+        proxy_pass http://ticketflow-backend:3001;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+    
+    # Health check endpoint
+    location /echo {
+        proxy_pass http://ticketflow-backend:3001;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+    
+    # Frontend requests
+    location / {
+        proxy_pass http://ticketflow-frontend:80/;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Port \$server_port;
+        
+        # Timeout settings
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+EOF",
+      
+      # Create systemd service for auto-start
+      "cat > /etc/systemd/system/ticketflow.service << 'EOF'
+[Unit]
+Description=TicketFlow Application
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/ticketflow
+ExecStart=/usr/bin/docker-compose up -d
+ExecStop=/usr/bin/docker-compose down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+EOF",
+      
+      # Set proper permissions
+      "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
+      "chmod 644 /opt/ticketflow/config/nginx-proxy.conf",
+      
+      # Enable and start the service
+      "systemctl daemon-reload",
+      "systemctl enable ticketflow.service",
+      
+      # Open additional firewall ports
+      "ufw allow 3001/tcp",
+      "ufw allow 8080/tcp",
+      
+      # Create startup script
+      "cat > /opt/ticketflow/start.sh << 'EOF'
+#!/bin/bash
+cd /opt/ticketflow
+docker-compose down
+docker-compose pull
+docker-compose up -d
+EOF",
+      "chmod +x /opt/ticketflow/start.sh",
+      "chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/start.sh"
+    ]
+  }
 }
