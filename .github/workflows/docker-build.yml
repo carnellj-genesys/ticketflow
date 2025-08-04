@@ -55,5 +55,8 @@ jobs:
         push: true
         platforms: linux/amd64,linux/arm64
         tags: ${{ secrets.DOCKER_USERNAME }}/ticketflow-frontend:latest
+        build-args: |
+          VITE_API_BASE_URL=/rest
+          NODE_ENV=production
         cache-from: type=gha
         cache-to: type=gha,mode=max

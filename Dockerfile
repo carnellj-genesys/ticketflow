@@ -91,6 +91,7 @@ ENV NODE_ENV=production
 ENV PORT=3001
 ENV VITE_WEBHOOK_ENABLED=false
 ENV VITE_WEBHOOK_URL=https://api.genesys.com/webhook/tickets
+ENV VITE_API_BASE_URL=/rest
 
 # Health check for production
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
