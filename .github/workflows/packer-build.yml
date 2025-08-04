@@ -1,13 +1,6 @@
 name: Packer Build
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types:
-      - completed
-    branches:
-      - main
-      - develop
   workflow_dispatch:
   push:
     branches:
@@ -99,10 +92,16 @@ jobs:
         echo "Current directory: $(pwd)"
         echo "Packer files: $(ls -la)"
         
+        # Initialize Packer plugins
+        echo "Initializing Packer plugins..."
+        packer init docker-droplet.pkr.hcl
+        
         # Validate Packer configuration
+        echo "Validating Packer configuration..."
         packer validate docker-droplet.pkr.hcl
         
         # Run Packer build
+        echo "Running Packer build..."
         packer build docker-droplet.pkr.hcl
         
     - name: Cleanup SSH Key
