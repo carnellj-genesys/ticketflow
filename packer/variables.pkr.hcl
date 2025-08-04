@@ -51,4 +51,10 @@ variable "timeout" {
   description = "Timeout for the build process"
   type        = string
   default     = "30m"
+}
+
+variable "ssh_key_id" {
+  description = "DigitalOcean SSH key ID"
+  type        = string
+  default     = env("SSH_KEY_ID")
 } 

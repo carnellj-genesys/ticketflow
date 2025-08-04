@@ -1,0 +1,72 @@
+name: Packer Build
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types:
+      - completed
+    branches:
+      - main
+      - develop
+
+jobs:
+  packer-build:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Packer
+      uses: hashicorp/setup-packer@v1
+      with:
+        version: "1.9.4"
+        
+    - name: Setup DigitalOcean CLI
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        
+    - name: Generate SSH Key
+      run: |
+        ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_do -N "" -C "packer@github-actions"
+        echo "SSH key generated successfully"
+        
+    - name: Add SSH Key to DigitalOcean
+      run: |
+        # Get the public key content
+        PUBLIC_KEY=$(cat ~/.ssh/id_rsa_do.pub)
+        
+        # Add the SSH key to DigitalOcean
+        doctl compute ssh-key create ticketflow-packer-key --public-key "$PUBLIC_KEY"
+        
+        # Get the key ID and set it as output
+        KEY_ID=$(doctl compute ssh-key list --format ID,Name --no-header | grep ticketflow-packer-key | awk '{print $1}')
+        echo "SSH_KEY_ID=$KEY_ID" >> $GITHUB_ENV
+        echo "SSH key added to DigitalOcean with ID: $KEY_ID"
+        
+    - name: Run Packer Build
+      env:
+        DOCTL_API_KEY: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      run: |
+        cd packer
+        packer build docker-droplet.pkr.hcl
+        
+    - name: Cleanup SSH Key
+      if: always()
+      run: |
+        # Remove the SSH key from DigitalOcean
+        KEY_ID=$(doctl compute ssh-key list --format ID,Name --no-header | grep ticketflow-packer-key | awk '{print $1}')
+        if [ ! -z "$KEY_ID" ]; then
+          doctl compute ssh-key delete $KEY_ID --force
+          echo "SSH key cleaned up from DigitalOcean"
+        fi
+        
+    - name: Upload SSH Key as Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-keys
+        path: ~/.ssh/id_rsa_do*
+        retention-days: 1 
