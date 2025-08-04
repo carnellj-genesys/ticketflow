@@ -106,19 +106,29 @@ cd /opt/ticketflow
 docker-compose config
 
 echo ""
-echo "4. Stopping any running containers..."
+echo "4. Fixing API Base URL configuration..."
+if [ -f "/opt/ticketflow/docker-compose.yml" ]; then
+    echo "Updating VITE_API_BASE_URL to use relative URL..."
+    sed -i 's|VITE_API_BASE_URL=http://ticketflow-backend:3001/rest|VITE_API_BASE_URL=/rest|g' /opt/ticketflow/docker-compose.yml
+    echo "API Base URL updated to use relative path"
+else
+    echo "ERROR: docker-compose.yml not found!"
+fi
+
+echo ""
+echo "5. Stopping any running containers..."
 docker-compose down
 
 echo ""
-echo "5. Starting containers..."
+echo "6. Starting containers..."
 docker-compose up -d
 
 echo ""
-echo "6. Checking container status..."
+echo "7. Checking container status..."
 docker-compose ps
 
 echo ""
-echo "7. Checking nginx-proxy container logs..."
+echo "8. Checking nginx-proxy container logs..."
 docker-compose logs nginx-proxy
 
 echo ""

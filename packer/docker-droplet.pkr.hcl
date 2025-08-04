@@ -177,7 +177,7 @@ services:
       - '80:80'
     environment:
       - NODE_ENV=production
-      - VITE_API_BASE_URL=http://ticketflow-backend:3001/rest
+      - VITE_API_BASE_URL=/rest
     networks:
       - ticketflow-network
     depends_on:

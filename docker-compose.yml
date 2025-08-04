@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - VITE_WEBHOOK_ENABLED=false
+      - VITE_WEBHOOK_ENABLED=true
       - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/9ae130307f25ce9d294f6891f38d04d36f44638f1e3cc59f85fcf0eef8bdcb5907a9434291c69c93ccabb6f598ba7fb4/events
       - VITE_WEBHOOK_TIMEOUT=5000
     networks:
@@ -21,7 +21,7 @@ services:
       - "80:80"
     environment:
       - NODE_ENV=production
-      - VITE_API_BASE_URL=http://ticketflow-backend:3001/rest
+      - VITE_API_BASE_URL=/rest
     networks:
       - ticketflow-network
     depends_on:
