@@ -44,7 +44,7 @@ jobs:
         file: ./Dockerfile
         target: production
         push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/ticketflow-backend:${{ steps.meta.outputs.version }}
+        tags: ${{ secrets.DOCKER_USERNAME }}/ticketflow-backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
@@ -55,6 +55,6 @@ jobs:
         file: ./Dockerfile
         target: production
         push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/ticketflow-frontend:${{ steps.meta.outputs.version }}
+        tags: ${{ secrets.DOCKER_USERNAME }}/ticketflow-frontend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
