@@ -37,7 +37,7 @@ EXPOSE 3001 5173
 ENV NODE_ENV=development
 ENV PORT=3001
 ENV VITE_WEBHOOK_ENABLED=false
-ENV VITE_WEBHOOK_URL=https://api.genesys.com/webhook/tickets
+ENV VITE_WEBHOOK_URL=https://localhost:8080/webhook/tickets
 ENV VITE_HOST=0.0.0.0
 ENV VITE_PORT=5173
 
@@ -50,6 +50,22 @@ CMD ["npm", "run", "dev"]
 
 # Production build stage
 FROM base AS build
+
+# Accept build arguments
+ARG VITE_API_BASE_URL
+ARG VITE_API_KEY
+ARG VITE_CORS_API_KEY
+ARG VITE_WEBHOOK_ENABLED
+ARG VITE_WEBHOOK_URL
+ARG VITE_WEBHOOK_TIMEOUT
+
+# Set environment variables for build
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_API_KEY=$VITE_API_KEY
+ENV VITE_CORS_API_KEY=$VITE_CORS_API_KEY
+ENV VITE_WEBHOOK_ENABLED=$VITE_WEBHOOK_ENABLED
+ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
+ENV VITE_WEBHOOK_TIMEOUT=$VITE_WEBHOOK_TIMEOUT
 
 # Install all dependencies including dev dependencies
 RUN npm ci
@@ -90,7 +106,7 @@ EXPOSE 80 3001
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV VITE_WEBHOOK_ENABLED=false
-ENV VITE_WEBHOOK_URL=https://api.genesys.com/webhook/tickets
+ENV VITE_WEBHOOK_URL=https://localhost:8080/webhook/tickets
 ENV VITE_API_BASE_URL=/rest
 
 # Health check for production
