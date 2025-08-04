@@ -8,6 +8,8 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch:
+    
 
 jobs:
   packer-build:
