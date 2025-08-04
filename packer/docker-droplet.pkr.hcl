@@ -190,8 +190,11 @@ EOF
     destination = "/opt/ticketflow/docker-compose.yml"
   }
 
-  provisioner "file" {
-    content = <<-EOF
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      # Create nginx configuration file
+      "cat > /opt/ticketflow/config/nginx-proxy.conf << 'NGINX_EOF'
 server {
     listen 8080;
     server_name localhost;
@@ -208,16 +211,16 @@ server {
         
         # Handle CORS
         add_header Access-Control-Allow-Origin *;
-        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
-        add_header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-apikey,CORS-API-Key";
+        add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE, OPTIONS';
+        add_header Access-Control-Allow-Headers 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-apikey,CORS-API-Key';
         
         # Handle preflight requests
-        if (\$request_method = "OPTIONS") {
+        if (\$request_method = 'OPTIONS') {
             add_header Access-Control-Allow-Origin *;
-            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
-            add_header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-apikey,CORS-API-Key";
+            add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE, OPTIONS';
+            add_header Access-Control-Allow-Headers 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,x-apikey,CORS-API-Key';
             add_header Access-Control-Max-Age 1728000;
-            add_header Content-Type "text/plain; charset=utf-8";
+            add_header Content-Type 'text/plain; charset=utf-8';
             add_header Content-Length 0;
             return 204;
         }
@@ -257,8 +260,9 @@ server {
         proxy_read_timeout 60s;
     }
 }
-EOF
-    destination = "/opt/ticketflow/config/nginx-proxy.conf"
+NGINX_EOF",
+      "echo 'Nginx configuration created successfully'"
+    ]
   }
             add_header Content-Type 'text/plain; charset=utf-8';
             add_header Content-Length 0;
