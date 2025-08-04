@@ -1,5 +1,16 @@
 # Multi-stage Dockerfile for Ticketing Application
-FROM node:18-slim AS base
+FROM node:20-slim AS base
+
+# Install Python and build tools for native module compilation
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    build-essential \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Python path for node-gyp
+ENV PYTHON=/usr/bin/python3
 
 # Set working directory
 WORKDIR /app
@@ -52,8 +63,11 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine AS production
 
-# Install Node.js for the API server
-RUN apk add --no-cache nodejs npm
+# Install Node.js and Python for the API server
+RUN apk add --no-cache nodejs npm python3 make g++
+
+# Set Python path for node-gyp
+ENV PYTHON=/usr/bin/python3
 
 # Copy built application to nginx
 COPY --from=build /app/dist /usr/share/nginx/html

@@ -16,7 +16,52 @@ The application now uses a simple environment variable approach. You only need t
 - `VITE_WEBHOOK_URL` - Webhook URL (optional, defaults to Genesys Cloud webhook)
 - `VITE_WEBHOOK_TIMEOUT` - Webhook timeout in ms (optional, defaults to 5000)
 
-## Deployment Examples
+## Docker Compose Deployment
+
+The application now uses separate containers for frontend and backend services with proper networking.
+
+### Development Environment
+
+```bash
+# Start both frontend and backend in development mode
+docker-compose up
+
+# Or start specific services
+docker-compose up ticketflow-backend    # Backend API only
+docker-compose up ticketflow-frontend   # Frontend only
+```
+
+**Services:**
+- **Backend**: `http://localhost:3001` (API server with hot reload)
+- **Frontend**: `http://localhost:5173` (Vite dev server with hot reload)
+
+### Production Environment
+
+```bash
+# Start production services
+docker-compose --profile prod up
+
+# Or start specific production services
+docker-compose --profile prod up ticketflow-backend-prod
+docker-compose --profile prod up ticketflow-frontend-prod
+```
+
+**Services:**
+- **Backend**: `http://localhost:3001` (Production API server)
+- **Frontend**: `http://localhost:80` (Nginx serving built React app)
+
+### Production with Webhooks
+
+```bash
+# Start production services with webhooks enabled
+docker-compose --profile prod-webhook up
+```
+
+**Services:**
+- **Backend**: `http://localhost:3002` (Production API server with webhooks)
+- **Frontend**: `http://localhost:8080` (Nginx serving built React app)
+
+## Manual Deployment Examples
 
 ### Local Development
 ```bash
@@ -73,6 +118,28 @@ Webhooks are handled by the backend server, which eliminates CORS issues when de
 - **Toggle Disabled**: Backend skips webhook notifications for ticket operations
 
 The webhook status is controlled via the frontend toggle and stored on the backend server.
+
+## Docker Compose Service Architecture
+
+### Development Services
+- **ticketflow-backend**: Node.js API server with hot reload
+- **ticketflow-frontend**: Vite dev server with hot reload
+
+### Production Services
+- **ticketflow-backend-prod**: Production Node.js API server
+- **ticketflow-frontend-prod**: Nginx serving built React app
+- **ticketflow-backend-prod-webhook**: Production API with webhooks enabled
+- **ticketflow-frontend-prod-webhook**: Nginx serving built React app
+
+### Networking
+- All services use the `ticketflow-network` bridge network
+- Frontend services automatically connect to backend services
+- Health checks ensure proper startup order
+
+### Volumes
+- Development services mount source code for hot reload
+- Production services use built artifacts
+- Node modules are cached in anonymous volumes
 
 ## That's It!
 
