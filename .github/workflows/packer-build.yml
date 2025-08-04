@@ -137,14 +137,3 @@ jobs:
           echo "SSH key not found" > ./ssh_key_public
         fi
         
-    - name: Upload SSH Key as Artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: ssh-keys
-        path: |
-          ~/.ssh/id_rsa_do
-          ~/.ssh/id_rsa_do.pub
-          ./ssh_key_private
-          ./ssh_key_public
-        retention-days: 1 
