@@ -154,7 +154,7 @@ services:
       - prod-webhook
     command: ["node", "server/server.js"]
 
-  # Production Frontend with Webhooks (Nginx)
+  # Production Frontend with Webhooks (Nginx)  
   ticketflow-frontend-prod-webhook:
     build:
       context: .
