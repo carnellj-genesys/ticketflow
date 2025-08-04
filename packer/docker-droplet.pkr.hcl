@@ -85,11 +85,11 @@ build {
       
       # Disable command-not-found to prevent database update errors
       "apt-get remove -y --purge command-not-found || true",
-      "rm -f /etc/apt/apt.conf.d/*command-not-found*",
+      "rm -f /etc/apt/apt.conf.d/\*command-not-found\*",
       
       # Clean apt cache and update
       "apt-get clean",
-      "rm -rf /var/lib/apt/lists/*",
+      "rm -rf /var/lib/apt/lists/\*",
       "apt-get update -y",
       
       # Install Docker dependencies
@@ -128,10 +128,24 @@ build {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
     inline = [
       # Create application directory structure
-      "mkdir -p /opt/ticketflow/{config,logs}",
+      "mkdir -p /opt/ticketflow/config",
+      "mkdir -p /opt/ticketflow/logs",
       "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
       "ls -la /opt/ticketflow/",
       "ls -la /opt/ticketflow/config/ || echo 'Config directory not found'"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      # Ensure nginx-proxy.conf is created as a file, not a directory
+      "rm -rf /opt/ticketflow/config/nginx-proxy.conf",
+      "touch /opt/ticketflow/config/nginx-proxy.conf",
+      "chmod 644 /opt/ticketflow/config/nginx-proxy.conf",
+      "chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/config/nginx-proxy.conf",
+      "echo 'nginx-proxy.conf file created and permissions set'",
+      "ls -la /opt/ticketflow/config/"
     ]
   }
 
@@ -261,6 +275,25 @@ EOF
     destination = "/opt/ticketflow/config/nginx-proxy.conf"
   }
 
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      # Verify nginx-proxy.conf file was created correctly
+      "echo 'Verifying nginx-proxy.conf file...'",
+      "if [ -f /opt/ticketflow/config/nginx-proxy.conf ]; then",
+      "  echo 'nginx-proxy.conf exists as a file'",
+      "  ls -la /opt/ticketflow/config/nginx-proxy.conf",
+      "  echo 'File contents:'",
+      "  head -10 /opt/ticketflow/config/nginx-proxy.conf",
+      "else",
+      "  echo 'ERROR: nginx-proxy.conf is not a file or does not exist'",
+      "  ls -la /opt/ticketflow/config/",
+      "fi",
+      "chmod 644 /opt/ticketflow/config/nginx-proxy.conf",
+      "chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/config/nginx-proxy.conf"
+    ]
+  }
+
   provisioner "file" {
     content = <<-EOF
 [Unit]
@@ -316,6 +349,11 @@ EOF
       "if [ -f /opt/ticketflow/config/nginx-proxy.conf ]; then chmod 644 /opt/ticketflow/config/nginx-proxy.conf; else echo 'nginx-proxy.conf not found'; fi",
       "if [ -f /opt/ticketflow/start.sh ]; then chmod +x /opt/ticketflow/start.sh; else echo 'start.sh not found'; fi",
       "if [ -f /opt/ticketflow/start.sh ]; then chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/start.sh; else echo 'start.sh not found'; fi",
+      
+      # Test Docker Compose configuration
+      "echo 'Testing Docker Compose configuration...'",
+      "cd /opt/ticketflow",
+      "docker-compose config || echo 'Docker Compose config validation failed'",
       
       # Enable and start the service
       "if [ -f /etc/systemd/system/ticketflow.service ]; then systemctl daemon-reload; systemctl enable ticketflow.service; else echo 'ticketflow.service not found'; fi",
