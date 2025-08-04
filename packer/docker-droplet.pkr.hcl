@@ -83,13 +83,13 @@ build {
       "rm -f /var/lib/dpkg/lock-frontend",
       "dpkg --configure -a",
       
-      # Disable command-not-found to prevent database update errors
-      "apt-get remove -y --purge command-not-found || true",
-      "rm -f /etc/apt/apt.conf.d/\*command-not-found\*",
-      
-      # Clean apt cache and update
-      "apt-get clean",
-      "rm -rf /var/lib/apt/lists/\*",
+              # Disable command-not-found to prevent database update errors
+        "apt-get remove -y --purge command-not-found || true",
+        "rm -f /etc/apt/apt.conf.d/*command-not-found*",
+        
+        # Clean apt cache and update
+        "apt-get clean",
+        "rm -rf /var/lib/apt/lists/*",
       "apt-get update -y",
       
       # Install Docker dependencies
