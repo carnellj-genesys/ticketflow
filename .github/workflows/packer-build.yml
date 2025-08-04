@@ -80,6 +80,7 @@ jobs:
         echo "SSH key added to DigitalOcean with ID: $KEY_ID"
         
     - name: Run Packer Build
+      timeout-minutes: 30
       env:
         DOCTL_API_KEY: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
         SSH_KEY_ID: ${{ env.SSH_KEY_ID }}
@@ -100,9 +101,9 @@ jobs:
         echo "Validating Packer configuration..."
         packer validate docker-droplet.pkr.hcl
         
-        # Run Packer build
+        # Run Packer build with timeout
         echo "Running Packer build..."
-        packer build docker-droplet.pkr.hcl
+        timeout 25m packer build docker-droplet.pkr.hcl
         
     - name: Cleanup SSH Key
       if: always()

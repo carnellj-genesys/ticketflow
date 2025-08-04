@@ -60,6 +60,8 @@ source "digitalocean" "docker_droplet" {
   snapshot_name = "${var.droplet_name}-snapshot-${formatdate("YYYYMMDD-hhmm", timestamp())}"
   ssh_key_id    = var.ssh_key_id
   ssh_private_key_file = "~/.ssh/id_rsa_do"
+  ssh_timeout   = "10m"
+  ssh_handshake_attempts = "100"
 }
 
 build {
@@ -79,7 +81,7 @@ build {
       "apt-get clean",
       "rm -rf /var/lib/apt/lists/*",
       "apt-get update -y",
-      "apt-get upgrade -y",
+      # Skip system upgrade to save time - just install Docker
       "apt-get install -y apt-transport-https ca-certificates curl gnupg",
       "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
       "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" > /etc/apt/sources.list.d/docker.list",
