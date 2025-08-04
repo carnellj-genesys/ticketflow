@@ -59,6 +59,7 @@ source "digitalocean" "docker_droplet" {
   droplet_name  = var.droplet_name
   snapshot_name = "${var.droplet_name}-snapshot-${formatdate("YYYYMMDD-hhmm", timestamp())}"
   ssh_key_id    = var.ssh_key_id
+  ssh_private_key_file = "~/.ssh/id_rsa_do"
 }
 
 build {
