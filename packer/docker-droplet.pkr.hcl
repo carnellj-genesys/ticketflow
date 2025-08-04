@@ -406,15 +406,15 @@ cd /opt/ticketflow
 
 # Stop any existing containers
 echo "Stopping existing containers..."
-docker-compose down || true
+docker compose down || true
 
 # Pull latest images
 echo "Pulling latest images..."
-docker-compose pull || echo "Warning: Failed to pull images, using local images"
+docker compose pull || echo "Warning: Failed to pull images, using local images"
 
 # Start the application
 echo "Starting application..."
-docker-compose up -d
+docker compose up -d
 
 # Wait for containers to be ready
 echo "Waiting for containers to be ready..."
@@ -422,7 +422,7 @@ sleep 10
 
 # Check status
 echo "Checking container status..."
-docker-compose ps
+docker compose ps
 
 echo "TicketFlow application started successfully!"
 echo "Access the application at: http://localhost:8080"
@@ -446,7 +446,7 @@ cd /opt/ticketflow
 
 # Stop the application
 echo "Stopping containers..."
-docker-compose down
+docker compose down
 
 echo "TicketFlow application stopped successfully!"
 EOF
