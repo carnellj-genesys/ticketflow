@@ -1,7 +1,33 @@
-version: '3.8'
-
 services:
-  # Nginx Reverse Proxy
+  # Backend API Server
+  ticketflow-backend:
+    image: johncarnell/ticketflow-backend:latest
+    container_name: ticketflow-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - VITE_WEBHOOK_ENABLED=false
+      - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/9ae130307f25ce9d294f6891f38d04d36f44638f1e3cc59f85fcf0eef8bdcb5907a9434291c69c93ccabb6f598ba7fb4/events
+      - VITE_WEBHOOK_TIMEOUT=5000
+    networks:
+      - ticketflow-network
+
+  ticketflow-frontend:
+    image: johncarnell/ticketflow-frontend:latest
+    container_name: ticketflow-frontend
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=http://ticketflow-backend:3001/rest
+    networks:
+      - ticketflow-network
+    depends_on:
+      - ticketflow-backend
+
+   # Nginx Reverse Proxy
   nginx-proxy:
     image: nginx:alpine
     container_name: ticketflow-nginx-proxy
@@ -13,166 +39,8 @@ services:
       - ticketflow-network
     depends_on:
       - ticketflow-backend
-      - ticketflow-frontend
-
-  # Mock Webhook Server (for testing)
-  mock-webhook:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-    container_name: ticketflow-mock-webhook
-    ports:
-      - "3003:3003"
-    volumes:
-      - ./mock-webhook-server.js:/app/mock-webhook-server.js
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - PORT=3003
-    networks:
-      - ticketflow-network
-    command: ["node", "mock-webhook-server.js"]
-
-  # Backend API Server
-  ticketflow-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-    container_name: ticketflow-backend
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./server:/app/server
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - PORT=3001
-      - VITE_WEBHOOK_ENABLED=false
-      - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/9ae130307f25ce9d294f6891f38d04d36f44638f1e3cc59f85fcf0eef8bdcb5907a9434291c69c93ccabb6f598ba7fb4/events
-      - VITE_WEBHOOK_TIMEOUT=5000
-    networks:
-      - ticketflow-network
-    command: ["npm", "run", "dev:server"]
-
-  # Frontend Development Server
-  ticketflow-frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-    container_name: ticketflow-frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./src:/app/src
-      - ./public:/app/public
-      - ./index.html:/app/index.html
-      - ./vite.config.ts:/app/vite.config.ts
-      - ./tsconfig.json:/app/tsconfig.json
-      - ./tsconfig.app.json:/app/tsconfig.app.json
-      - ./tsconfig.node.json:/app/tsconfig.node.json
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - VITE_API_BASE_URL=http://localhost:8080/rest
-      - VITE_API_KEY=68544b73bb5cccc333f6d956
-      - VITE_CORS_API_KEY=68544b73bb5cccc333f6d956
-      - VITE_HOST=0.0.0.0
-      - VITE_PORT=5173
-    networks:
-      - ticketflow-network
-    depends_on:
-      - ticketflow-backend
-    command: ["npm", "run", "dev:client"]
-
-  # Production Backend
-  ticketflow-backend-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: ticketflow-backend-prod
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - VITE_WEBHOOK_ENABLED=false
-      - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/9ae130307f25ce9d294f6891f38d04d36f44638f1e3cc59f85fcf0eef8bdcb5907a9434291c69c93ccabb6f598ba7fb4/events
-      - VITE_WEBHOOK_TIMEOUT=5000
-    networks:
-      - ticketflow-network
-    profiles:
-      - prod
-    command: ["node", "server/server.js"]
-
-  # Production Frontend (Nginx)
-  ticketflow-frontend-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: ticketflow-frontend-prod
-    ports:
-      - "80:80"
-    environment:
-      - NODE_ENV=production
-      - VITE_API_BASE_URL=http://ticketflow-backend-prod:3001/rest
-    networks:
-      - ticketflow-network
-    depends_on:
-      - ticketflow-backend-prod
-    profiles:
-      - prod
-
-  # Production with Webhooks Enabled
-  ticketflow-backend-prod-webhook:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: ticketflow-backend-prod-webhook
-    ports:
-      - "3002:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - VITE_WEBHOOK_ENABLED=true
-      - VITE_WEBHOOK_URL=https://api.usw2.pure.cloud/platform/api/v2/integrations/webhooks/9ae130307f25ce9d294f6891f38d04d36f44638f1e3cc59f85fcf0eef8bdcb5907a9434291c69c93ccabb6f598ba7fb4/events
-      - VITE_WEBHOOK_TIMEOUT=5000
-    networks:
-      - ticketflow-network
-    profiles:
-      - prod-webhook
-    command: ["node", "server/server.js"]
-
-  # Production Frontend with Webhooks (Nginx)  
-  ticketflow-frontend-prod-webhook:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: ticketflow-frontend-prod-webhook
-    ports:
-      - "8080:80"
-    environment:
-      - NODE_ENV=production
-      - VITE_API_BASE_URL=http://ticketflow-backend-prod-webhook:3001/rest
-    networks:
-      - ticketflow-network
-    depends_on:
-      - ticketflow-backend-prod-webhook
-    profiles:
-      - prod-webhook
+      - ticketflow-frontend    
 
 networks:
   ticketflow-network:
-    driver: bridge 
+    driver: bridge
