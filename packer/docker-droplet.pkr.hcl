@@ -7,6 +7,49 @@ packer {
   }
 }
 
+variable "do_token" {
+  description = "DigitalOcean API token"
+  type        = string
+  sensitive   = true
+  default     = env("DOCTL_API_KEY")
+}
+
+variable "do_region" {
+  description = "DigitalOcean region for the droplet"
+  type        = string
+  default     = "nyc1"
+}
+
+variable "do_size" {
+  description = "DigitalOcean droplet size"
+  type        = string
+  default     = "s-1vcpu-512mb-10gb"
+}
+
+variable "do_image" {
+  description = "DigitalOcean base image (Ubuntu 22.04 LTS)"
+  type        = string
+  default     = "ubuntu-22-04-x64"
+}
+
+variable "droplet_name" {
+  description = "Name for the droplet"
+  type        = string
+  default     = "ticketflow-docker-droplet"
+}
+
+variable "ssh_username" {
+  description = "SSH username for the droplet"
+  type        = string
+  default     = "root"
+}
+
+variable "ssh_key_id" {
+  description = "DigitalOcean SSH key ID"
+  type        = string
+  default     = env("SSH_KEY_ID")
+}
+
 source "digitalocean" "docker_droplet" {
   api_token     = var.do_token
   image         = var.do_image
