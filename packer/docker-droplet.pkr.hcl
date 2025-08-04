@@ -57,10 +57,12 @@ build {
     inline = [
       # Create application directory structure
       "mkdir -p /opt/ticketflow/{config,logs}",
-      "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
-      
-      # Create docker-compose.yml
-      "cat > /opt/ticketflow/docker-compose.yml << 'EOF'
+      "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow"
+    ]
+  }
+
+  provisioner "file" {
+    content = <<-EOF
 services:
   ticketflow-backend:
     image: johncarnell/ticketflow-backend:latest
@@ -110,10 +112,12 @@ services:
 networks:
   ticketflow-network:
     driver: bridge
-EOF",
-      
-      # Create nginx configuration
-      "cat > /opt/ticketflow/config/nginx-proxy.conf << 'EOF'
+EOF
+    destination = "/opt/ticketflow/docker-compose.yml"
+  }
+
+  provisioner "file" {
+    content = <<-EOF
 server {
     listen 8080;
     server_name localhost;
@@ -179,10 +183,12 @@ server {
         proxy_read_timeout 60s;
     }
 }
-EOF",
-      
-      # Create systemd service for auto-start
-      "cat > /etc/systemd/system/ticketflow.service << 'EOF'
+EOF
+    destination = "/opt/ticketflow/config/nginx-proxy.conf"
+  }
+
+  provisioner "file" {
+    content = <<-EOF
 [Unit]
 Description=TicketFlow Application
 Requires=docker.service
@@ -198,11 +204,29 @@ TimeoutStartSec=0
 
 [Install]
 WantedBy=multi-user.target
-EOF",
-      
+EOF
+    destination = "/etc/systemd/system/ticketflow.service"
+  }
+
+  provisioner "file" {
+    content = <<-EOF
+#!/bin/bash
+cd /opt/ticketflow
+docker-compose down
+docker-compose pull
+docker-compose up -d
+EOF
+    destination = "/opt/ticketflow/start.sh"
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
       # Set proper permissions
       "chown -R ${var.ssh_username}:${var.ssh_username} /opt/ticketflow",
       "chmod 644 /opt/ticketflow/config/nginx-proxy.conf",
+      "chmod +x /opt/ticketflow/start.sh",
+      "chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/start.sh",
       
       # Enable and start the service
       "systemctl daemon-reload",
@@ -210,18 +234,7 @@ EOF",
       
       # Open additional firewall ports
       "ufw allow 3001/tcp",
-      "ufw allow 8080/tcp",
-      
-      # Create startup script
-      "cat > /opt/ticketflow/start.sh << 'EOF'
-#!/bin/bash
-cd /opt/ticketflow
-docker-compose down
-docker-compose pull
-docker-compose up -d
-EOF",
-      "chmod +x /opt/ticketflow/start.sh",
-      "chown ${var.ssh_username}:${var.ssh_username} /opt/ticketflow/start.sh"
+      "ufw allow 8080/tcp"
     ]
   }
 }
