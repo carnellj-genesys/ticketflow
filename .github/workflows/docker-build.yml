@@ -44,6 +44,7 @@ jobs:
         file: ./Dockerfile
         target: production
         push: true
+        platforms: linux/amd64,linux/arm64
         tags: ${{ secrets.DOCKER_USERNAME }}/ticketflow-backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -55,6 +56,7 @@ jobs:
         file: ./Dockerfile
         target: production
         push: true
+        platforms: linux/amd64,linux/arm64
         tags: ${{ secrets.DOCKER_USERNAME }}/ticketflow-frontend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
