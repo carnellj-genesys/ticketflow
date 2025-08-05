@@ -621,7 +621,7 @@ EOF
   }
 
   # Create ngrok systemd service
-  provisioner "shell" {
+  provisioner "file" {
     content = <<-EOF
 [Unit]
 Description=ngrok service
