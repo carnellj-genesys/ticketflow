@@ -20,42 +20,51 @@ The service is located at `/etc/systemd/system/ticketflow.service` and includes:
 ### Check Service Status
 ```bash
 sudo systemctl status ticketflow
+sudo systemctl status ngrok
 ```
 
 ### Start the Service
 ```bash
 sudo systemctl start ticketflow
+sudo systemctl start ngrok
 ```
 
 ### Stop the Service
 ```bash
 sudo systemctl stop ticketflow
+sudo systemctl stop ngrok
 ```
 
 ### Restart the Service
 ```bash
 sudo systemctl restart ticketflow
+sudo systemctl restart ngrok
 ```
 
 ### Enable/Disable Auto-Start
 ```bash
 # Enable auto-start on boot
 sudo systemctl enable ticketflow
+sudo systemctl enable ngrok
 
 # Disable auto-start on boot
 sudo systemctl disable ticketflow
+sudo systemctl disable ngrok
 ```
 
 ### View Service Logs
 ```bash
 # View recent logs
 sudo journalctl -u ticketflow
+sudo journalctl -u ngrok
 
 # Follow logs in real-time
 sudo journalctl -u ticketflow -f
+sudo journalctl -u ngrok -f
 
 # View logs from last boot
 sudo journalctl -u ticketflow -b
+sudo journalctl -u ngrok -b
 ```
 
 ## Manual Scripts
@@ -87,6 +96,7 @@ Once the service is running, the application is accessible at:
 - **Frontend**: http://localhost:8080
 - **API**: http://localhost:8080/rest/ticket
 - **Health Check**: http://localhost:8080/echo
+- **ngrok Tunnel**: https://ticketflow.ngrok.io (if ngrok is configured)
 
 ## Troubleshooting
 

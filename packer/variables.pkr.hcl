@@ -53,6 +53,13 @@ variable "timeout" {
   default     = "30m"
 }
 
+variable "ngrok_auth_token" {
+  description = "ngrok authentication token"
+  type        = string
+  sensitive   = true
+  default     = env("NGROK_AUTH_TOKEN")
+}
+
 variable "ssh_key_id" {
   description = "DigitalOcean SSH key ID"
   type        = string

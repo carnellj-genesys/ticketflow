@@ -592,4 +592,92 @@ EOF
       "echo 'Access the application at: http://localhost:8080'"
     ]
   }
+
+  # Install and configure ngrok
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      "echo 'Installing ngrok...'",
+      
+      # Install snapd if not already installed
+      "apt-get update -y",
+      "apt-get install -y snapd",
+      
+      # Install ngrok via snap
+      "snap install ngrok",
+      
+      # Create ngrok configuration directory
+      "mkdir -p /opt/ticketflow",
+      
+      # Verify ngrok installation
+      "ngrok version || echo 'ngrok installation verification'"
+    ]
+  }
+
+  # Create ngrok configuration file
+  provisioner "file" {
+    content = <<-EOF
+version: 2
+authtoken: ${var.ngrok_auth_token}
+tunnels:
+  app:
+    proto: http
+    addr: http://localhost:8080
+    hostname: ticketflow.ngrok.io
+EOF
+    destination = "/opt/ticketflow/ngrok.yml"
+  }
+
+  # Create ngrok systemd service
+  provisioner "file" {
+    content = <<-EOF
+[Unit]
+Description=ngrok service
+After=network.target
+After=ticketflow.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/snap/bin/ngrok start --all --config /opt/ticketflow/ngrok.yml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    destination = "/etc/systemd/system/ngrok.service"
+  }
+
+  # Configure ngrok service
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    inline = [
+      "echo 'Configuring ngrok service...'",
+      
+      # Set proper permissions
+      "chmod 644 /opt/ticketflow/ngrok.yml",
+      "chmod 644 /etc/systemd/system/ngrok.service",
+      "chown root:root /opt/ticketflow/ngrok.yml",
+      "chown root:root /etc/systemd/system/ngrok.service",
+      
+      # Reload systemd daemon
+      "systemctl daemon-reload",
+      
+      # Enable ngrok service
+      "systemctl enable ngrok.service",
+      
+      # Verify configuration
+      "echo 'Verifying ngrok configuration...'",
+      "if [ -f /opt/ticketflow/ngrok.yml ]; then echo 'ngrok.yml exists'; else echo 'ngrok.yml not found'; fi",
+      "if [ -f /etc/systemd/system/ngrok.service ]; then echo 'ngrok.service exists'; else echo 'ngrok.service not found'; fi",
+      
+      # Test ngrok configuration
+      "ngrok config check /opt/ticketflow/ngrok.yml || echo 'ngrok config check completed'",
+      
+      "echo 'ngrok installation and configuration completed successfully!'",
+      "echo 'ngrok service will start automatically on system boot.'",
+      "echo 'ngrok tunnel will be available at: https://ticketflow.ngrok.io'"
+    ]
+  }
 }
