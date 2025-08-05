@@ -614,20 +614,10 @@ EOF
     ]
   }
 
-  # Create ngrok configuration file with placeholder
+  # Create ngrok configuration file with auth token
   provisioner "file" {
-    content = "version: 2\nauthtoken: NGROK_TOKEN_PLACEHOLDER\ntunnels:\n  app:\n    proto: http\n    addr: http://localhost:8080\n    hostname: ticketflow.ngrok.io"
+    content = templatefile("${path.root}/ngrok.yml.tpl", { ngrok_auth_token = var.ngrok_auth_token })
     destination = "/opt/ticketflow/ngrok.yml"
-  }
-
-  # Replace placeholder with actual auth token using environment variable
-  provisioner "shell" {
-    environment_vars = ["NGROK_AUTH_TOKEN"]
-    inline = [
-      "echo 'Updating ngrok configuration with auth token...'",
-      "NGROK_TOKEN=\"$NGROK_AUTH_TOKEN\"",
-      "sed -i \"s/NGROK_TOKEN_PLACEHOLDER/$NGROK_TOKEN/g\" /opt/ticketflow/ngrok.yml"
-    ]
   }
 
   # Create ngrok systemd service

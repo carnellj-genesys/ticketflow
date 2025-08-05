@@ -64,4 +64,4 @@ variable "ssh_key_id" {
   description = "DigitalOcean SSH key ID"
   type        = string
   default     = env("SSH_KEY_ID")
-} 
+}
