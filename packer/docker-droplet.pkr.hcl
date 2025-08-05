@@ -621,7 +621,7 @@ EOF
   }
 
   # Create ngrok systemd service
-  provisioner "file" {
+  provisioner "shell" {
     content = <<-EOF
 [Unit]
 Description=ngrok service
@@ -631,7 +631,7 @@ After=ticketflow.service
 [Service]
 Type=simple
 User=root
-ExecStart=/snap/bin/ngrok start --all --config /opt/ticketflow/ngrok.yml
+ExecStart=/snap/bin/ngrok start --all
 Restart=always
 RestartSec=10
 
@@ -652,6 +652,7 @@ EOF
       "chmod 644 /etc/systemd/system/ngrok.service",
       "chown root:root /opt/ticketflow/ngrok.yml",
       "chown root:root /etc/systemd/system/ngrok.service",
+      "cp /opt/ticketflow/ngrok.yml ~/.config/ngrok/ngrok.yml",
       
       # Reload systemd daemon
       "systemctl daemon-reload",
