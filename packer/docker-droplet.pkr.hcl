@@ -616,15 +616,10 @@ EOF
 
   # Create ngrok configuration file
   provisioner "file" {
-    content = "version: 2\nauthtoken: PLACEHOLDER_AUTH_TOKEN\ntunnels:\n  app:\n    proto: http\n    addr: http://localhost:8080\n    hostname: ticketflow.ngrok.io"
+    content = templatefile("${path.root}/ngrok.yml.tpl", {
+      ngrok_auth_token = var.ngrok_auth_token
+    })
     destination = "/opt/ticketflow/ngrok.yml"
-  }
-
-  # Update ngrok configuration with actual auth token
-  provisioner "shell" {
-    inline = [
-      "sed -i 's/PLACEHOLDER_AUTH_TOKEN/${var.ngrok_auth_token}/g' /opt/ticketflow/ngrok.yml"
-    ]
   }
 
   # Create ngrok systemd service
