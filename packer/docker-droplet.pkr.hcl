@@ -367,9 +367,9 @@ After=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/opt/ticketflow
-ExecStart=/usr/bin/docker-compose up -d
-ExecStop=/usr/bin/docker-compose down
-ExecReload=/usr/bin/docker-compose down && /usr/bin/docker-compose up -d
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose down && /usr/bin/docker compose up -d
 TimeoutStartSec=0
 
 # Restart policy
@@ -522,7 +522,7 @@ EOF
       # Test Docker Compose configuration
       "echo 'Testing Docker Compose configuration...'",
       "cd /opt/ticketflow",
-      "docker-compose config || echo 'Docker Compose config validation failed'",
+      "docker compose config || echo 'Docker Compose config validation failed'",
       
       # Enable and start the service
       "if [ -f /etc/systemd/system/ticketflow.service ]; then systemctl daemon-reload; systemctl enable ticketflow.service; else echo 'ticketflow.service not found'; fi",
