@@ -614,10 +614,21 @@ EOF
     ]
   }
 
-  # Create basic ngrok configuration file (manual setup required)
-  provisioner "file" {
-    content = "version: 2\nauthtoken: YOUR_NGROK_AUTH_TOKEN_HERE\ntunnels:\n  app:\n    proto: http\n    addr: http://localhost:8080\n    hostname: ticketflow.ngrok.io"
-    destination = "/opt/ticketflow/ngrok.yml"
+  # Create ngrok configuration file with auth token
+  provisioner "shell" {
+    inline = [
+      "echo 'Creating ngrok configuration...'",
+      "NGROK_TOKEN='${var.ngrok_auth_token}'",
+      "cat > /opt/ticketflow/ngrok.yml << EOF",
+      "version: 2",
+      "authtoken: \$NGROK_TOKEN",
+      "tunnels:",
+      "  app:",
+      "    proto: http",
+      "    addr: http://localhost:8080",
+      "    hostname: ticketflow.ngrok.io",
+      "EOF"
+    ]
   }
 
   # Create ngrok systemd service
