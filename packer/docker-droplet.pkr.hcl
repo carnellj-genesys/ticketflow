@@ -652,6 +652,8 @@ EOF
       "chmod 644 /etc/systemd/system/ngrok.service",
       "chown root:root /opt/ticketflow/ngrok.yml",
       "chown root:root /etc/systemd/system/ngrok.service",
+
+      "mkdir -p ~/.config/ngrok",
       "cp /opt/ticketflow/ngrok.yml ~/.config/ngrok/ngrok.yml",
       
       # Reload systemd daemon
