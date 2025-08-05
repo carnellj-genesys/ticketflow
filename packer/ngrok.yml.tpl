@@ -1,4 +1,6 @@
+version: 3
 
+agent:
   authtoken: ${ngrok_auth_token}
 tunnels:
   app:

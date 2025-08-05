@@ -653,8 +653,8 @@ EOF
       "chown root:root /opt/ticketflow/ngrok.yml",
       "chown root:root /etc/systemd/system/ngrok.service",
 
-      "mkdir -p ~/.config/ngrok",
-      "cp /opt/ticketflow/ngrok.yml ~/.config/ngrok/ngrok.yml",
+      "mkdir -p /root/snap/ngrok/295/.config/ngrok",
+      "cp /opt/ticketflow/ngrok.yml /root/snap/ngrok/295/.config/ngrok/ngrok.yml",
       
       # Reload systemd daemon
       "systemctl daemon-reload",
