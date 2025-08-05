@@ -616,7 +616,7 @@ EOF
 
   # Create ngrok configuration file with auth token
   provisioner "file" {
-    content = templatefile("${path.root}/ngrok.yml.tpl", { ngrok_auth_token = var.ngrok_auth_token })
+    content = templatefile("${path.root}/ngrok.yml.tpl", { ngrok_auth_token = '30TgMXV2URI0X3RWGOhFgbhc4Ur_3zVDcLpG6VwyL641Cu4iw' })
     destination = "/opt/ticketflow/ngrok.yml"
   }
 
