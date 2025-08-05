@@ -615,17 +615,18 @@ EOF
   }
 
   # Create ngrok configuration file
-  provisioner "file" {
-    content = <<-EOF
-version: 2
-authtoken: ${var.ngrok_auth_token}
-tunnels:
-  app:
-    proto: http
-    addr: http://localhost:8080
-    hostname: ticketflow.ngrok.io
-EOF
-    destination = "/opt/ticketflow/ngrok.yml"
+  provisioner "shell" {
+    inline = [
+      "cat > /opt/ticketflow/ngrok.yml << 'EOF'",
+      "version: 2",
+      "authtoken: ${var.ngrok_auth_token}",
+      "tunnels:",
+      "  app:",
+      "    proto: http",
+      "    addr: http://localhost:8080",
+      "    hostname: ticketflow.ngrok.io",
+      "EOF"
+    ]
   }
 
   # Create ngrok systemd service
