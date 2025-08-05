@@ -615,18 +615,15 @@ EOF
   }
 
   # Create ngrok configuration file
+  provisioner "file" {
+    content = "version: 2\nauthtoken: PLACEHOLDER_AUTH_TOKEN\ntunnels:\n  app:\n    proto: http\n    addr: http://localhost:8080\n    hostname: ticketflow.ngrok.io"
+    destination = "/opt/ticketflow/ngrok.yml"
+  }
+
+  # Update ngrok configuration with actual auth token
   provisioner "shell" {
-    environment_vars = ["NGROK_AUTH_TOKEN=${var.ngrok_auth_token}"]
     inline = [
-      "cat > /opt/ticketflow/ngrok.yml << EOF",
-      "version: 2",
-      "authtoken: $NGROK_AUTH_TOKEN",
-      "tunnels:",
-      "  app:",
-      "    proto: http",
-      "    addr: http://localhost:8080",
-      "    hostname: ticketflow.ngrok.io",
-      "EOF"
+      "sed -i 's/PLACEHOLDER_AUTH_TOKEN/${var.ngrok_auth_token}/g' /opt/ticketflow/ngrok.yml"
     ]
   }
 
