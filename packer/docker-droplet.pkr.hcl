@@ -621,7 +621,7 @@ EOF
       "NGROK_TOKEN='${var.ngrok_auth_token}'",
       "cat > /opt/ticketflow/ngrok.yml << EOF",
       "version: 2",
-      "authtoken: \$NGROK_TOKEN",
+      "authtoken: $NGROK_TOKEN",
       "tunnels:",
       "  app:",
       "    proto: http",
