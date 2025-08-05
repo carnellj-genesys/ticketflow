@@ -616,10 +616,11 @@ EOF
 
   # Create ngrok configuration file
   provisioner "shell" {
+    environment_vars = ["NGROK_AUTH_TOKEN=${var.ngrok_auth_token}"]
     inline = [
-      "cat > /opt/ticketflow/ngrok.yml << 'EOF'",
+      "cat > /opt/ticketflow/ngrok.yml << EOF",
       "version: 2",
-      "authtoken: ${var.ngrok_auth_token}",
+      "authtoken: $NGROK_AUTH_TOKEN",
       "tunnels:",
       "  app:",
       "    proto: http",
