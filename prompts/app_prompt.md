@@ -19,6 +19,7 @@ You are tasked with developing and maintaining the **TicketFlow** application - 
 
 ### 1. Ticket Management
 - Complete CRUD operations (Create, Read, Update, Delete)
+- Ticket lookup by ticket number for quick access and editing
 - Sortable and filterable ticket table
 - Real-time status updates
 - Priority and status management
@@ -27,7 +28,15 @@ You are tasked with developing and maintaining the **TicketFlow** application - 
 - Auto-status generation (defaults to "Open")
 - SQLite database persistence with automatic migration
 
-### 2. User Interface
+### 2. Ticket Lookup Feature
+- Quick ticket lookup by entering ticket number
+- Direct access to edit modal when ticket is found
+- Clear error message when ticket is not found
+- Loading states during lookup operations
+- Input validation and trimming
+- Keyboard support (Enter key to submit)
+
+### 3. User Interface
 - Responsive design for desktop, tablet, and mobile
 - Dark mode support with persistent preference
 - Modern, clean UI with accessibility features
@@ -35,28 +44,28 @@ You are tasked with developing and maintaining the **TicketFlow** application - 
 - Multi-line notes field for agents
 - Paginated ticket table with sorting
 
-### 3. Webhook Integration
+### 4. Webhook Integration
 - Automatic notifications for ticket operations
 - Configurable webhook endpoints
 - Error handling and retry logic
 - Runtime enable/disable toggle
 - Notes field included in webhook payloads
 
-### 4. API Layer
+### 5. API Layer
 - RESTful API with comprehensive endpoints
 - CORS support for cross-origin requests
 - Request/response logging for debugging
 - Error handling and status codes
 - SQLite database with prepared statements
 
-### 5. Database Management
+### 6. Database Management
 - SQLite database with automatic schema creation
 - Data migration from JSON to SQLite
 - Backup creation and data integrity checks
 - Transaction safety and ACID compliance
 - Graceful shutdown handling
 
-### 6. Auto-Generation Features
+### 7. Auto-Generation Features
 - **Auto-Title Generation**: Automatic title generation when no title is provided
   - Uses first 100 characters of description as title
   - Adds "..." for descriptions longer than 100 characters
@@ -103,6 +112,10 @@ ticketflow/
 │   │   ├── common/         # Shared components
 │   │   ├── layout/         # Layout components
 │   │   └── tickets/        # Ticket-specific components
+│   │       ├── TicketLookup.tsx    # Ticket lookup component
+│   │       ├── TicketForm.tsx      # Ticket form component
+│   │       ├── TicketTable.tsx     # Ticket table component
+│   │       └── TicketRow.tsx       # Ticket row component
 │   ├── services/           # API services
 │   ├── types/              # TypeScript type definitions
 │   ├── utils/              # Utility functions
@@ -191,6 +204,7 @@ docker run -p 80:80 -p 3001:3001 -e VITE_WEBHOOK_ENABLED=true ticketflow:prod
 - **TicketTable**: Main table displaying all tickets with sorting and filtering
 - **TicketForm**: Form for creating and editing tickets with notes field
 - **TicketRow**: Individual ticket row component
+- **TicketLookup**: Component for looking up tickets by ticket number
 - **ConfirmationModal**: Modal for confirming destructive actions
 
 ### Common Components

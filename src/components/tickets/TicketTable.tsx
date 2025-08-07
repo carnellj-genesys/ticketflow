@@ -88,17 +88,14 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   return (
     <div>
       <div className="table-container" style={{ overflowX: 'auto', maxWidth: '100%' }}>
-        <table className="table" style={{ minWidth: '1200px' }}>
+        <table className="table" style={{ minWidth: '1010px' }}>
           <thead>
             <tr>
-              <th style={{ width: '80px', minWidth: '80px' }}>
+              <th style={{ width: '160px', minWidth: '160px' }}>
                 <SortableHeader field="ticket_number">Ticket #</SortableHeader>
               </th>
-              <th style={{ width: '200px', minWidth: '200px' }}>
+              <th style={{ width: '300px', minWidth: '300px' }}>
                 <SortableHeader field="issue_title">Title</SortableHeader>
-              </th>
-              <th style={{ width: '250px', minWidth: '250px' }}>
-                <SortableHeader field="issue_description">Description</SortableHeader>
               </th>
               <th style={{ width: '100px', minWidth: '100px' }}>
                 <SortableHeader field="status">Status</SortableHeader>

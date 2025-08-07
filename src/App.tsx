@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/layout/Header';
 import { TicketTable } from './components/tickets/TicketTable';
 import { TicketForm } from './components/tickets/TicketForm';
+import { TicketLookup } from './components/tickets/TicketLookup';
 import { ErrorBanner } from './components/common/ErrorBanner';
 import { ConfirmationModal } from './components/common/ConfirmationModal';
 import { ticketService } from './services/ticketService';
@@ -18,6 +19,7 @@ function App() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [lookupLoading, setLookupLoading] = useState(false);
 
 
 
@@ -104,6 +106,21 @@ function App() {
     setShowDeleteModal(true);
   };
 
+  const handleTicketLookup = async (ticketNumber: string) => {
+    try {
+      setLookupLoading(true);
+      setError(null);
+      const ticket = await ticketService.getTicketById(ticketNumber);
+      setSelectedTicket(ticket);
+      setShowEditModal(true);
+    } catch (err) {
+      setError(`Ticket #${ticketNumber} not found. Please check the ticket number and try again.`);
+      console.error('Error looking up ticket:', err);
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   const closeError = () => setError(null);
 
   return (
@@ -121,12 +138,15 @@ function App() {
             marginBottom: 'var(--spacing-lg)'
           }}>
             <h2>All Tickets</h2>
-            <button
-              className="btn btn-primary btn-lg"
-              onClick={() => setShowCreateModal(true)}
-            >
-              ➕ Create Ticket
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
+              <TicketLookup onLookup={handleTicketLookup} isLoading={lookupLoading} />
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={() => setShowCreateModal(true)}
+              >
+                ➕ Create Ticket
+              </button>
+            </div>
           </div>
 
           <TicketTable

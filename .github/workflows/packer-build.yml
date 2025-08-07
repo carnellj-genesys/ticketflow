@@ -2,12 +2,7 @@ name: Packer Build
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - develop
     
-
 jobs:
   packer-build:
     runs-on: ubuntu-latest

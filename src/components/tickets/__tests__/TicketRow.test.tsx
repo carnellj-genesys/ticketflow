@@ -43,9 +43,8 @@ describe('TicketRow', () => {
   it('should render ticket information correctly', () => {
     renderTicketRow();
 
-    expect(screen.getByText('12345678...')).toBeInTheDocument();
+    expect(screen.getByText('1234567890')).toBeInTheDocument();
     expect(screen.getByText('Test Ticket Title')).toBeInTheDocument();
-    expect(screen.getByText('This is a test ticket description that should be displayed properly')).toBeInTheDocument();
     expect(screen.getByText('Open')).toBeInTheDocument();
     expect(screen.getByText('High')).toBeInTheDocument();
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
@@ -55,7 +54,7 @@ describe('TicketRow', () => {
   it('should call onEdit when ID button is clicked', () => {
     renderTicketRow();
 
-    const idButton = screen.getByText('12345678...');
+    const idButton = screen.getByText('1234567890');
     fireEvent.click(idButton);
 
     expect(mockOnEdit).toHaveBeenCalledWith('1234567890');
@@ -93,18 +92,18 @@ describe('TicketRow', () => {
     expect(priorityBadge).toHaveClass('badge', 'badge-high');
   });
 
-  it('should truncate long ticket numbers properly', () => {
+  it('should display long ticket numbers properly', () => {
     const longTicketNumberTicket = { ...mockTicket, ticket_number: 'verylongticketid123456789' };
     
     renderTicketRow(longTicketNumberTicket);
 
-    expect(screen.getByText('verylong...')).toBeInTheDocument();
+    expect(screen.getByText('verylongticketid123456789')).toBeInTheDocument();
   });
 
   it('should show full ticket number in tooltip', () => {
     renderTicketRow();
 
-    const ticketNumberButton = screen.getByText('12345678...');
+    const ticketNumberButton = screen.getByText('1234567890');
     expect(ticketNumberButton).toHaveAttribute('title', '1234567890');
   });
 }); 

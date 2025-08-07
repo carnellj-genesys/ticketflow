@@ -30,7 +30,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({ ticket, onEdit, onDelete }
 
   return (
     <tr>
-      <td style={{ maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <td style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         <button
           onClick={() => onEdit(ticket.ticket_number || '')}
           className="btn btn-sm"
@@ -48,14 +48,11 @@ export const TicketRow: React.FC<TicketRowProps> = ({ ticket, onEdit, onDelete }
           }}
           title={ticket.ticket_number || 'Unknown'}
         >
-          {ticket.ticket_number && ticket.ticket_number.length > 8 ? `${ticket.ticket_number.substring(0, 8)}...` : (ticket.ticket_number || 'Unknown')}
+          {ticket.ticket_number || 'Unknown'}
         </button>
       </td>
-      <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {ticket.issue_title}
-      </td>
-      <td style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {ticket.issue_description}
       </td>
       <td>
         <span className={getStatusBadgeClass(ticket.status)}>
